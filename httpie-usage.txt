@@ -1,0 +1,13 @@
+https://blog.csdn.net/bobey/article/details/84863380 
+
+1.http GET http://localhost:5000/api/users/1/followers
+2.http POST http://localhost:5000/api/users username=alice password=dog   email=alice@example.com about_me="Hello, my name is Alice!"
+3.http PUT http://localhost:5000/api/users/2 "about_me=Hi, I am Miguel"
+4.
+5.http --auth <username>:<password> POST http://localhost:5000/api/tokens
+
+
+
+a.获取Token:   http --auth chennl:654321 post http://localhost:5000/api/tokens
+b.使用Token:   http GET http://localhost:5000/api/users/1   "Authorization:Bearer w5VKo8yhw/PnA7nj+FrLHcjY646PF/BP"
+c.删除Token:   http DELETE http://localhost:5000/api/tokens "Authorization:Bearer w5VKo8yhw/PnA7nj+FrLHcjY646PF/BP"

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>定义input type="file" 的样式</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <style>
+      .file-box{
+        display: block; width: 50%;height: 100px; text-align: center
+      }
+  </style>
+     
+</head>
+<body>
+    </br>
+    <div class="file-box">
+        <form action="/project/upload_material" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" class="file" id="file" size="28"/>
+        <input type="submit" name="submit" class="btn" value="上传 Material" onclick=""/>
+        </form>
+    </div>
+</br>
+    <div class="file-box">
+        <form action="/project/upload_bom" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" class="file" id="file" size="28"   />
+        <input type="submit" name="submit" class="btn" value="上传  Project Material  " onclick=""/>
+        </form>
+    </div>
+    </br>
+    <div class="file-box">
+        <form action="/project/upload_inbound" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" class="file" id="file" size="28"   />
+        <input type="submit" name="submit" class="btn" value="上传  入库单  " onclick=""/>
+        </form>
+    </div>
+
+</br>
+    <div class="file-box">
+        <form action="/project/upload_project" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" class="file" id="file" size="28"   />
+        <input type="submit" name="submit" class="btn" value="上传工程" onclick=""/>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+{% extends 'layui_base.html' %}
+{% block style%}
+<style type="text/css">
+   
+  /*文本对齐方式*/
+  .text-center{text-align: center;}
+</style>
+{% endblock %}
+{% block content %}
+<span class="layui-breadcrumb" lay-separator="»">
+    <a href="#">日常管理</a>
+    <a href="/project/index">仓库管理</a>
+    <a href="">余库报表</a>
+ </span>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend><i class="layui-icon layui-icon-list"></i>余库报表<span style="color:#1E9FFF">{{" %s %s "%(project.wbscode,project.name)}}</span></legend>
+</fieldset>
+<form class="layui-form" action="" lay-filter="projectForm">
+    <div class=" layui-form-item"><input type="hidden"  id="project_id" name="project_id"></div>
+
+
+      <div class="layui-card">
+          <div class="layui-card-body layui-text">
+            <div id="tableRes" class="table-overlay  ">
+              <table id="dataTable" lay-filter="dataTable" class="layui-hide"></table>
+            </div>
+          </div>
+      </div>
+</form>
+
+
+{% endblock %}
+{% block bodyscript %}
+
+<script>
+layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],function(){
+    var layer = layui.layer
+    ,form = layui.form
+    ,element = layui.element
+    ,table = layui.table
+    ,util = layui.util
+    ,laydate = layui.laydate
+    ,layedit = layui.layedit
+    ,$ = layui.jquery;
+    
+    laydate.render({
+      elem:'#project_year',
+      type:'year'
+    });
+    form.val("projectForm", {
+        "project_id":"{{project.id}}",
+        // "project_wbscode":"{{project.wbscode}}",
+        // "project_name":"{{project.name}}",
+        // "project_year":"{{project.year}}",
+        // "remark":"{{project.remark}}"
+      })
+
+    var tbWidth = $("#tableRes").width();
+    var layTableId = "layTable";
+    var tableIns = table.render({
+				elem: '#dataTable',
+ //       toolbar:'#toolbarInSearchMaterialBox',
+        defaultToolBar:true,
+				id: layTableId,
+       // size:'sm',
+				url: "/api/projects/{{project.id}}/inventory",
+			//	width: tbWidth,
+				loading: true,
+        parseData:function(res){//res 即为原始返回的数据
+          return {
+            "code": res.status, //解析接口状态
+            // "msg": 'res.message', //解析提示文本
+            // "count": res._meta.total_items, //解析数据长度
+            "data": res.items //解析数据列表
+          }},
+				even: false, //不开启隔行背景
+				cols: [[
+        //  {type:'checkbox'},
+					{title: '序号', type: 'numbers'},
+					{field: 'code', title: '编号',width:150},
+					{field: 'name', title: '名称',width:150},
+					{field: 'specification', title: '规格型号'},	
+          {field: 'unit', title: '单位',width:60},	
+          {field: 'quantity', title: '需求', width:80},	
+          {field: 'inload_total', title: '入库', width:80},	
+          {field: 'outload_total', title: '出库', width:80},	
+          {field: 'return_total', title: '退料', width:80},	
+          {field: 'balance', title: '库存',width:80},	
+          {field: 'diff', title: '差异', width:80},					
+					// {field: 'tempId', title: '操作', templet: function(d){
+					// 	return '<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" lay-id="'+ d.tempId +'"><i class="layui-icon layui-icon-delete"></i>移除</a>';
+					// }}
+				]],
+				done: function(res, curr, count){
+				//	viewObj.tbData = res.data;
+				}
+			});
+
+  });
+</script>
+<script type="text/html" id="toolbarInSearchMaterialBox">
+      <button class="layui-btn"  lay-event="reload"  data-type="reload"><i class="layui-icon">&#xe615;</i>查找</button>
+      <button class="layui-btn"  lay-event="insert"  data-type="insert"><i class="layui-icon layui-icon-ok-circle"></i>加入清单</button>
+  </div>
+</script>
+
+<div class="layui-row" id="popSearchMaterialBox" style="display:none">
+    <table class="layui-table" id="searchMaterialTable" lay-filter="searchMaterialTable" style="margin: 0"></table>
+</div>
+ </div>
+{% endblock %}
+ 
+ 
+    
+ 
+

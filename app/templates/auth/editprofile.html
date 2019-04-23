@@ -1,0 +1,202 @@
+{% extends 'layui_base.html' %}
+ 
+ 
+{% block content %}
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md12">
+        <div class="layui-card">
+          <div class="layui-card-header">设置我的资料</div>
+          <div class="layui-card-body" pad15="">
+            <form class="layui-form" action="" id="profileform" method ="POST" lay-filter="profile" ENCTYPE="multipart/form-data">
+                {{ form.hidden_tag() }}
+              <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-inline">
+                  <input type="text" name="username" id="username" readonly="" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">不可修改。用于后台登入名</div>
+              </div>
+              <div class="layui-form-item">
+                <label class="layui-form-label">昵称</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="nickname" lay-verify="nickname" autocomplete="off" placeholder="请输入昵称" class="layui-input">
+                </div>
+              </div>
+    
+              <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                  <input type="radio" name="sex" value="男" title="男" checked="">
+                  <input type="radio" name="sex" value="女" title="女">
+                </div>
+              </div>
+
+             <div class="layui-form-item layui-upload">
+                <label class="layui-form-label">头像</label>
+                <div class="layui-input-inline layui-btn-container" style="width: auto;"> 
+                <div  class="layui-upload-list" style="margin: 5px"> 
+                 <img id="previewimg" src="{{url_for('static',filename='avatars/'+current_user.avatar(200))}}" width="100" onerror="this.src='/static/avatars/avatar.jpg' "/>
+              </div>
+                <button type="button" class="layui-btn layui-btn-primary" id="btnSelectFile">
+                  <i class="layui-icon">&#xe660;</i>选择头像
+                </button>
+                <button type="button" class="layui-btn" id="btnUpload"> <i class="layui-icon">&#xe67c;</i>开始上传</button>
+                </div>
+              </div> 
+
+              <div class="layui-form-item">
+                <label class="layui-form-label">邮箱</label>
+                <div class="layui-input-inline">
+                  <input type="text" name="email" value="" lay-verify="email" autocomplete="off" class="layui-input">
+                </div>
+              </div>
+              <!-- <div class="layui-form-item">
+                <label class="layui-form-label">最近登入</label>
+                <div class="layui-input-inline">
+                  <input type="text" name="last_seen" value=""  readonly="" lay-verify="last_seen" autocomplete="off" class="layui-input">
+                </div>
+              </div> -->
+              <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">关于我</label>
+                <div class="layui-input-block">
+                  <textarea name="about_me" placeholder="说点什么吧" class="layui-textarea" lay-verify="about_me"  style="width:380px"></textarea>
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <div class="layui-input-block">
+                  <button class="layui-btn" lay-submit="" lay-filter="setprofile">立即提交</button>
+                  <button type="reset" class="layui-btn layui-btn-primary">重新填写</button>
+                </div>
+              </div>
+            </form>      
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block bodyscript %}
+<script>
+  //JavaScript代码区域
+  layui.use(['layer', 'form','element', 'laydate','upload','util'],function(){
+      var layer = layui.layer
+      ,form = layui.form
+      ,laydate = layui.laydate
+      ,upload = layui.upload
+      ,util = layui.util
+      ,$ = layui.jquery;
+ 
+    var post=eval("{% with messages = get_flashed_messages() %} {% if messages %}true{% else %}false{% endif %}{% endwith %}");
+    if(post){
+      layer.msg("个人资料更新成功", {icon: 6}); 
+      setTimeout(function(){layer.closeAll();}, 1000);
+    }
+
+    //自定义验证规则
+    form.verify({
+      nickname: function(value){
+        if(value.length < 1){
+          return '昵称不能为空';
+        }
+      },
+      about_me:function(value,item){
+        if( value.length>140){
+          return "关于我不能多于140个字";
+        }
+      }
+      // ,pass: [
+      //   /^[\S]{6,12}$/
+      //   ,'密码必须6到12位，且不能出现空格'
+      // ]
+      // ,content: function(value){
+      //   layedit.sync(editIndex);
+      // }
+     });
+ 
+  //普通图片上传
+  var uploadInst = upload.render({
+    elem: '#btnSelectFile'
+    ,url: '/auth/profile/avatar'
+    ,size: 100 //限制文件大小，单位 KB
+    , exts: 'jpg'        //可传输文件的后缀jpg|png|gif|
+    , accept: 'file'              //video audio images
+    , data: { Parm1: "hello", Parm2: "world" }    //额外传输的参数
+    , headers:{token:'sasasasa'}                   //额外添加的请求头
+    , auto: false                                 //自动上传,默认是打开的
+    , bindAction: '#btnUpload'                    //auto为false时，点击触发上传
+    , multiple: false                             //多文件上传
+    , choose: function (obj) {
+      //预读本地文件示例，不支持ie8
+      obj.preview(function(index, file, result){
+        $('#previewimg').attr('src', result); //图片链接（base64）
+      });
+    }
+    ,before: function(obj){
+
+    }
+    ,done: function(res){
+      //如果上传失败
+      if(res.code ==200){
+        return layer.msg('上传成功');
+      }
+      else{
+        return layer.msg('上传失败');
+      }
+      //上传成功
+    }
+    ,error: function(){
+      //演示失败状态，并实现重传
+      var demoText = $('#demoText');
+      demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+      demoText.find('.demo-reload').on('click', function(){
+        uploadInst.upload();
+      });
+    }
+  });
+
+  //监听提交
+  form.on('submit(setprofile)', function(data){
+    // layer.alert(JSON.stringify(data.field), {
+    //   title: '最终的提交信息'
+    // })
+    // $.ajax({
+    //           url:'/auth/profile',
+    //           type: "POST",
+    //           contentType: "application/json; charset=utf-8",
+    //           data: JSON.stringify(jsonObj),
+    //           dataType: 'json',
+    //           async:false,
+    //           success:function (msg) {
+    //               if(msg.code==200){
+    //                   layer.closeAll('loading');
+    //                   layer.load(2);
+    //                   layer.msg("个人资料更新成功", {icon: 6});
+    //                   setTimeout(function(){
+    //                       layer.closeAll();
+    //                   }, 1000);
+    //               }else{
+    //                   layer.msg("个人资料更新失败"+msg.msg, {icon: 5});
+    //               }
+    //               return false;
+    //           },
+    //           error: function(XMLHttpRequest, textStatus, errorThrown){
+    //             layer.msg(XMLHttpRequest.status+"-", {icon: 5,title:"保存提交异常"});
+    //             return false;
+    //           }
+    //         });
+
+    return true;
+  }); 
+     //表单初始赋值
+    form.val('profile', {
+      "username": "{{form.username}}"  
+      ,"nickname": "{{form.nickname}}"
+      ,"last_seen": util.toDateString("{{form.last_seen}}",'yyyy-MM-dd HH:mm')
+      ,"email":"{{form.email}}"
+      ,"about_me": "{{form.about_me}}"
+    });
+
+  });
+    </script>
+{% endblock %}

@@ -1,0 +1,459 @@
+{% extends 'layui_base.html' %}
+{% block content %}
+<div class="layui-card" style="padding: 2px;">
+    <div class="layui-card-header">工程需求清单:</div>
+    <div class="layui-card-body">
+        <table class="layui-table" id="materialTable" lay-filter="materialTable"></table>
+    </div>
+</div>
+{% endblock %}
+{% block bodyscript %}
+<script type="text/html" id="toolbarDemo">
+    <div class="searchTable">
+        <div class="layui-inline">
+          <select name="project" lay-verify="" lay-search id="dataReload" autocomplete="off" >
+            <option value>请选择工程</option>
+            {% for project in projects%}
+            <option value="{{project.id}}">{{project.name}}</option>
+            {% endfor %}
+          </select>
+
+        </div>
+        <button class="layui-btn"  lay-event="reload"  data-type="reload"><i class="layui-icon">&#xe615;</i>提取</button>
+        <button class="layui-btn"  lay-event="new"  data-type="new"><i class="layui-icon">&#xe654;</i>添加</button>
+        <button class="layui-btn layui-btn-sm"  lay-event="addrow"  data-type="addrow"><i class="layui-icon">&#xe654;</i>添加一行</button>
+    </div>
+</script>
+<script type="text/html" id="toolbarSearchBox" >
+  <div class="searchBox">
+      <div class="layui-inline">
+          <select name="category" lay-verify="" lay-search id="searchCategoryInput"  autocomplete="off" >
+              <option value="甲">甲供</option>
+              <option value="乙">乙供</option>
+          </select>
+
+        </div>
+      <div class="layui-inline">
+          <input type="text" id="searchKeywordInput" placeholder="请输入关键字"  class="layui-input">
+      </div>
+      <div class=" layui-inline">
+      <button class="layui-btn"  lay-event="search"  data-type="search"><i class="layui-icon">&#xe615;</i>查找</button>
+      <div class="layui-inline">
+      <button class="layui-btn"  lay-event="add"  data-type="add"><i class="layui-icon">&#xe605;</i>确认添加</button>
+    </div>
+  </div>
+</script>
+
+
+
+<script type="text/html" id="rowtoolbar">
+  <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon">&#xe640;</i>删除</a>
+</script>
+
+<script>
+
+//JavaScript代码区域
+layui.use(['layer', 'form','element', 'table','util'],function(){
+    var layer = layui.layer
+    ,form = layui.form
+    ,element = layui.element
+    ,table = layui.table
+    ,util = layui.util
+    ,$ = layui.jquery;
+    
+  // 表格渲染
+    table.render({
+        elem: '#materialTable'
+     //   ,height: vip_table.getFullHeight()
+        ,toolbar:'#toolbarDemo'
+        //,title: '工程信息表'
+        ,url: '/api/projects/bom' //数据接口
+        // ,page: {
+        //   limit:15
+        // }//开启分页
+       // ,even: true //开启隔行背景
+        ,request: {
+            pageName: 'page' //页码的参数名称，默认：page
+           ,limitName: 'per_page' //每页数据量的参数名，默认：limit
+        }
+        ,parseData:function(res){//res 即为原始返回的数据
+          return {
+            "code": res.status, //解析接口状态
+            "msg": 'res.message', //解析提示文本
+            "count": res._meta.total_items, //解析数据长度
+            "data": res.items //解析数据列表
+          };
+        }
+        ,cols: [[ //表头
+        {field: 'id', title: 'ID',width:80, fixed: 'left'}
+        ,{field: 'material_code', title: '材料编号',width:120}
+        ,{field: 'material_name', title: '材料名称',width:150, sort: true}
+        ,{field: 'material_specification', title: '规格型号',width:300}
+        ,{field: 'quantity', title: '数量',width:80,edit: 'text'}
+        ,{field: 'updated_date', title: '更新时间',width:150, sort: true,templet:function(d){return moment(d.updated_date).fromNow();}}
+        ,{fixed: 'right', title:'操作',width:250, align:'center', toolbar: '#rowtoolbar'}
+       
+        ]]
+        ,done:function(res){
+          console.log("done:"+res);
+        }
+    });
+    
+    table.render({
+        elem: '#searchTable'
+        ,title: '工程材料表'
+  //      ,toolbar:'#toolbarSearchBox'
+        ,defaultToolbar:false
+        ,size:'sm'
+        ,url: '/api/materials' //数据接口
+        ,page: {
+          limit:30
+        }//开启分页
+       // ,even: true //开启隔行背景
+        ,request: {
+            pageName: 'page' //页码的参数名称，默认：page
+           ,limitName: 'per_page' //每页数据量的参数名，默认：limit
+        }
+        ,parseData:function(res){//res 即为原始返回的数据
+          return {
+            "code": res.status, //解析接口状态
+            "msg": 'res.message', //解析提示文本
+            "count": res._meta.total_items, //解析数据长度
+            "data": res.items //解析数据列表
+          };
+        }
+        ,cols: [[ //表头
+        {type:'checkbox'}
+        ,{field: 'category', title: '分类',width:160}
+        ,{field: 'name', title: '材料名称',width:160, sort: true}
+        ,{field: 'specification', title: '规格型号',width:300}
+        ]]
+    });
+
+    
+
+    //监听弹出框表单提交，formdata是修改界面的表单数据'submit(demo11),是修改按钮的绑定
+    function setFormSubmitHandler(obj,data){
+      form.on('submit(formsubmit)',function(formdata){
+        if(parseInt(formdata.field.id) > 0){
+           $.ajax({
+                url:'/api/projects/'+formdata.field.id,
+                type: "PUT",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(formdata.field),
+                dataType: 'json',
+                async:false,
+                success:function (msg) {
+                  console.log(msg);  
+                    if(msg.code==200){
+                        layer.closeAll('loading');
+                        layer.load(2);
+                        layer.msg("工程信息更新成功", {icon: 6});
+                        setTimeout(function(){
+                            obj.update({
+                                  name:formdata.field.name,
+                                  wbscode:formdata.field.wbscode,
+                                  year:formdata.field.year,
+                                  remark:formdata.field.remark
+                              });//修改成功修改表格数据不进行跳转
+                              layer.closeAll();//关闭所有的弹出层
+                        }, 1000);
+                      //  加载层-风格
+                    }else{
+                        layer.msg("工程信息更新失败", {icon: 5});
+                    }
+                    return false;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                    return false;
+                }
+          });
+        } 
+        return false;
+      });
+    }
+    //添加材料
+    function setNewFormSubmitHandler(){
+      form.on('submit(newformsubmit)',function(formdata){
+            $.ajax({
+                  url:'/api/projects',
+                  type: "POST",
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify(formdata.field),
+                  dataType: 'json',
+                  async:false,
+                  success:function (msg) {
+                    console.log(msg);  
+                      if(msg.code==200){
+                          layer.closeAll('loading');
+                          layer.load(2);
+                          layer.msg("工程信息添加成功", {icon: 6});
+                          setTimeout(function(){
+                              //更新成功刷新reload 
+                            // $("#btnReload").click();
+                              layer.closeAll();//关闭所有的弹出层
+                          }, 1000);
+                      }else{
+                          layer.msg("工程信息添加失败", {icon: 5});
+                      }
+                      return false;
+                  },
+                  error: function(XMLHttpRequest, textStatus, errorThrown){
+                    layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                    return false;
+                  }
+            });
+          return false;
+        });
+    }
+    
+
+    
+    //头工具栏事件
+    table.on('toolbar(materialTable)', function(obj){
+    switch(obj.event){
+      case 'reload':
+        if($('#dataReload').val().length ==0){
+          layer.alert('请选择工程', {icon: 5}); 
+          return 
+          }
+
+        var dataReload =$('#dataReload');
+        var index = layer.msg('查询中，请稍候...',{icon:16,time:false,shade:0});
+        setTimeout(function(){
+          table.reload('materialTable',{//执行重载
+              page:{
+                page:1
+              }
+              ,where:{
+                id:dataReload.val()
+              }
+          });
+          layer.close(index);
+        },800);
+       break;
+     case 'new':
+        layer.open({
+            type: 1,
+            title: "添加材料",
+            area: ['788px','618px'],
+            content: $("#popNewMaterial"),
+            success:function(){
+
+              }
+        });
+        //setNewFormSubmitHandler();    
+       break;
+      case 'isAll':
+        layer.msg(checkStatus.isAll ? '全选': '未全选');
+      break;
+    };
+  });
+
+    //监听行工具条
+    table.on('tool(materialTable)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+      var data = obj.data; //获得当前行数据
+      var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+      var tr = obj.tr; //获得当前行 tr 的DOM对象
+      if(layEvent === 'detail'){ //查看
+        //do somehing
+      } else if(layEvent === 'del'){ //删除
+        layer.confirm('真的删除该工程吗?', function(index){  
+          $.ajax({
+            url:'/api/projects/'+data.id,
+            type: "DELETE",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data.id),
+            dataType: 'json',
+            async:false,
+            success: function(msg){
+              if( msg.code ==200){
+                obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                layer.msg("工程信息删除成功", {icon: 6});
+                layer.close(index);
+              }else{
+                layer.msg("工程信息删除失败", {icon: 5});
+              }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown){
+                  layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                  return false;
+              }
+          });
+        });
+      } else if(layEvent === 'edit'){ //编辑     
+          layer.open({
+                      //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                      type: 1,
+                      title: "修改工程信息",
+                      area: ['718px', '388px'],
+                      content: $("#popUpdateProject"),//引用的弹出层的页面层的方式加载修改界面表单
+                      success:function(){
+                        $("#id").val(data.id);
+                        $("#wbscode").val(data.wbscode);
+                        $("#name").val(data.name);
+                        $("#year").val(data.year);
+                        $("#remark").val(data.remark);
+                      }
+          });
+          setFormSubmitHandler(obj,data);
+      }//编辑结束
+      else if(layEvent === 'list'){
+        layer.open({
+                      //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                      type: 2,
+                      title: "修改工程信息",
+                      area: ['718px', '388px'],
+                      content:"/project/materials",//引用的弹出层的页面层的方式加载修改界面表单
+                      success:function(){
+                        $("#id").val(data.id);
+                        $("#wbscode").val(data.wbscode);
+                        $("#name").val(data.name);
+                        $("#year").val(data.year);
+                        $("#remark").val(data.remark);
+                      }
+          });
+      }
+    });
+   
+   table.on('edit(materialTable)',function(obj){
+        var value = obj.value //得到修改后的值
+        ,data = obj.data //得到所在行所有键值
+        ,field = obj.field; //得到字段
+        layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+   });
+
+//材料搜寻表 头工具栏事件
+table.on('toolbar(searchTable)', function(obj){
+    //var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'search':
+        //var data = checkStatus.data;
+        //layer.alert("reload");
+        // if($('#searchKeywordInput').val().length ==0){
+        //   layer.alert('请输入关键字,以免数据太多,影响使用', {icon: 5}); 
+        //   return 
+        //   }
+
+        var searchCategory =$('#searchCategoryInput').val();
+        var searchKeyword = $('#searchKeywordInput').val();
+        var index = layer.msg('查询中，请稍候...',{icon:16,time:false,shade:0});
+        setTimeout(function(){
+          
+          table.reload('searchTable',{//执行重载
+              page:{
+                page:1
+              }
+              ,where:{
+                category:searchCategory,
+                keyword:searchKeyword
+              }
+          });
+          layer.close(index);
+        },800);
+       break;
+     case 'add':
+          var checkStatus = table.checkStatus(obj.config.id); //获取选中行状态
+          var data = checkStatus.data;  //获取选中行数据
+         // layer.alert(JSON.stringify(data));
+          var mids=[];
+          for(i=0;i<data.length;i++ ){
+              mids.push(data[i].id);
+          }
+          json = {"pid":1,"mids":mids}
+          alert(JSON.stringify(json))
+          url="/api/projects/1/bom";
+          $.ajax({
+              url:url,
+              type: "POST",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(json),
+              dataType: 'json',
+              async:false,
+              success:function (msg) {
+                console.log(msg);  
+                  if(msg.code==200){
+                      layer.closeAll('loading');
+                      layer.load(2);
+                      layer.msg("材料添加成功", {icon: 6});
+                      setTimeout(function(){
+                          //更新成功刷新reload 
+                        // $("#btnReload").click();
+                          layer.closeAll();//关闭所有的弹出层
+                      }, 1000);
+                  }else{
+                      layer.msg("材料添加失败", {icon: 5});
+                  }
+                  return false;
+              },
+              error: function(XMLHttpRequest, textStatus, errorThrown){
+                layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                return false;
+              }
+            });
+
+       break;
+     };
+  });
+ 
+  });
+</script>
+
+<div class="layui-row" id="popUpdateProject" style="display:none;">
+    <div class="layui-col-md10">
+        <form class="layui-form layui-from-pane" action="" style="margin-top:20px" >
+          <input type="hidden" name="id"  id="id">
+            <div class="layui-form-item">
+                <label class="layui-form-label">工程编号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="wbscode"  id="wbscode" required  lay-verify="required" autocomplete="off" placeholder="请输入工程编号" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">工程名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" id="name" required  lay-verify="required" autocomplete="off" placeholder="请输入工程名称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">工程年份</label>
+                <div class="layui-input-block">
+                    <input type="text" name="year"  id="year"  required  lay-verify="required" autocomplete="off" placeholder="请输入工程年份" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <input type="text" name="remark"  id="remark"    autocomplete="off"  class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item" style="margin-top:40px">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="formsubmit">立即提交</button>
+                </div>
+            </div>
+        </form>
+ </div>
+</div>
+
+ <div class="layui-row" id="popNewMaterial" style="display:none;margin-top:1px">
+    <div  style="margin-top:1px" class="layui-form">
+      <div class="layui-inline">
+          <input type="text" id="searchKeywordInput" placeholder="请输入关键字"  class="layui-input">
+      </div>
+      <div class=" layui-inline">
+      <button class="layui-btn"  lay-event="search"  data-type="search"><i class="layui-icon">&#xe615;</i></button>
+      <button class="layui-btn"  lay-event="add"  data-type="add"><i class="layui-icon">&#xe605;</i>确认添加</button>
+    </div>
+    <table class="layui-table" id="searchTable" lay-filter="searchTable" ></table>
+   </div>
+ </div>
+{% endblock %}
+ 
+ 
+    
+ 
+

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+   <title>EMS工程材料管理系统</title>
+  <link rel="bookmark" href="/favicon.ico" type="image/x-icon"　/>
+
+  <!-- <link rel="stylesheet" href="https://heerey525.github.io/layui-v2.4.3/layui-v2.4.5/css/layui.css"> -->
+  <link rel="stylesheet" href="{{url_for('static',filename='layui/css/layui.css')}}">
+  
+  <script src="{{url_for('static',filename='js/jquery-3.3.1.min.js')}}"></script>
+  <script src="{{url_for('static',filename='js/jquery.cookie.js')}}"></script>
+  
+  
+<!-- <script src='https://heerey525.github.io/layui-v2.4.3/layui-v2.4.5/layui.js'></script> -->
+<script src="{{url_for('static',filename='layui/layui.js')}}"></script>
+
+<!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+<script src="{{url_for('static',filename='js/axios.min.js')}}"></script>
+ 
+
+  <!-- <style>
+      .layui-form-label{
+          width: 100px;
+      }
+      .layui-input-block {
+          margin-left: 130px;
+          min-height: 36px
+      }
+      body{
+        font-family: "Segoe UI","Lucida Grande",Helvetica,Arial,"Microsoft YaHei",FreeSans,Arimo,"Droid Sans","wenquanyi micro hei","Hiragino Sans GB","Hiragino Sans GB W3",FontAwesome,sans-serif;
+      }
+      .layui-nav *{font-size: 16px}
+     
+  </style>  -->
+</head>
+
+<body class="layui-layout-body">
+  <div class="layui-layout layui-layout-admin">
+  {% block content %}
+
+  {%  endblock %}
+  </div>
+
+
+<!--JavaScript代码区域-->
+{% block bodyscript %}
+
+{% endblock %}
+
+</body>
+</html>

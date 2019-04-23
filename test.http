@@ -1,0 +1,37 @@
+ GET http://localhost:5000/api/users/1 HTTP/1.1
+
+###
+  
+POST http://localhost:5000/api/users HTTP/1.1
+content-type: application/json
+
+{"username":"alice", 
+"password":"dog", 
+"email":"alice@example.com",
+ "about_me":"Hello, my name is Alice!"
+ }
+
+###
+PUT http://localhost:5000/api/users/9 HTTP/1.1
+content-type: application/json
+
+{"username":"alice", 
+"password":"dog", 
+"email":"alice@example.com",
+ "about_me":"Hello, my name is Alice!"
+ }
+
+ ###
+
+POST http://localhost:5000/api/tokens HTTP/1.1
+Authorization: Basic user passwd
+
+GET https://httpbin.org//basic-auth/user/passwd HTTP/1.1
+Authorization: Basic dXNlcjpwYXNzd2Q=
+and
+
+GET https://httpbin.org//basic-auth/user/passwd HTTP/1.1
+Authorization: Basic user passwd
+
+
+###

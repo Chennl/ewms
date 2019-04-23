@@ -1,0 +1,237 @@
+{% extends 'layui_base.html' %}
+
+{% block content %}
+<span class="layui-breadcrumb" lay-separator="»">
+    <a href="">日常管理</a>
+    <a href="">后台管理员</a>
+ </span>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend><i class="layui-icon layui-icon-user" style="font-size: 22px;"></i>用户管理 </legend>
+</fieldset>
+<table class="layui-table" id="userTable" lay-filter="userTable"></table>
+ 
+{% endblock %}
+{% block bodyscript %}
+
+<script type="text/html" id="headToolbar">
+  <div class="searchTable layui-form">
+    <div class="layui-inline">
+        <label class="layui-form-label">用户名</label>
+        <div class="layui-input-inline">
+          <input type="text" class="layui-input" name="p_username" id='p_username' placeholder="">
+        </div>
+      </div>
+      昵称
+      <div class="layui-inline">
+        <input class="layui-input" name="p_nickname" id="dataReload" autocomplete="off">
+      </div>
+      <button class="layui-btn"  lay-event="reload"  data-type="reload"><i class="layui-icon">&#xe615;</i>搜索</button>
+      <button class="layui-btn"  lay-event="new"  data-type="new"><i class="layui-icon">&#xe654;</i>添加用户</button>
+  </div>
+</script>
+
+<script type="text/html" id="rowtoolbar">
+  <a class="layui-btn  layui-btn-xs" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
+  <a class="layui-btn  layui-btn-normal layui-btn-xs" lay-event="repassword"><i class="layui-icon layui-icon-password"></i>重置密码</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon">&#xe640;</i>删除</a>
+</script>
+
+<script>
+
+//JavaScript代码区域
+layui.use(['layer', 'form','element', 'table','util'],function(){
+    var layer = layui.layer,table = layui.table,$ = layui.jquery;
+
+    table.render({
+         elem: '#userTable'
+        ,toolbar:'#headToolbar'
+        ,title: '用户信息表'
+        ,cols:
+         [[  
+        {type:'numbers',title:'序号'},
+        {field: 'username', title: '登录名',width:180, sort: true},
+        {field: 'nickname', title: '昵称',width:200, sort: true},
+        {field: 'email', title: '电子邮箱',width:320, sort: true},
+        {field: 'last_seen', title: '最近访问',width:200, sort: true,templet: function(d){ 
+                return moment(d.last_seen,moment.ISO_8601).format('YYYY-MM-DD hh:mm:ss')}  },
+        {fixed: 'right', title:'操作',width:250, align:'center', toolbar: '#rowtoolbar'}
+        ]],
+        headers: {"Authorization": "Bearer "+$.cookie("token")},
+        url: '/api/users'  ,
+        page: {limit:30,  page:1},
+        done:function(res,cur,count){
+          console.log(res)
+        },
+        error:function(res){
+          console.log(res)
+        }
+
+    });
+    
+    //头工具栏事件
+    table.on('toolbar(userTable)', function(obj){
+   
+    switch(obj.event){
+      case 'reload':
+      var username =$('#p_username').val();
+        var nickname = $('#p_nickname').val();
+        var index = layer.msg('查询中，请稍候...',{icon:16,time:false,shade:0});
+        setTimeout(function(){
+          table.reload('userTable',{//执行重载
+              page:{
+                page:1
+              }
+              ,where:{
+                username:username,
+                nickname:nickname
+              }
+          });
+          layer.close(index);
+        },800);
+       break;
+ 
+     case 'new':
+        layer.open({
+            type: 2,
+            title: "新增加用户",
+            area: ['618px', '488px'],
+            zIndex: layer.zIndex,
+            content:'/auth/user/add',
+            success:function(layero){
+              layer.setTop(layero);  
+           //   alert("1");
+            },
+            end:function(){
+            //  alert(2);
+              window.location.reload();}
+        });
+        // setNewFormSubmitHandler();  
+       // window.location.href="/auth/user/add";  
+       break;
+      case 'isAll':
+        layer.msg(checkStatus.isAll ? '全选': '未全选');
+      break;
+    };
+  });
+
+    //监听行工具条
+    table.on('tool(userTable)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+      var data = obj.data; //获得当前行数据
+      var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+      var tr = obj.tr; //获得当前行 tr 的DOM对象
+      if(layEvent === 'repassword'){ //查看
+        layer.confirm('真的要重置该用户的密码吗?', function(index){
+          axios.post('/auth/user/repassword/'+data.id, JSON.stringify(data.id))
+                .then(function (response) {
+                  console.log(response);
+                    data = response.data;
+                    if( data.errcode ==200){
+                      layer.msg( data.errmsg, {icon: 6,time:1500});
+                    }else{
+                      layer.msg(data.errmsg, {icon: 5,time:1500});
+                    }
+                    layer.close(index);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                      if(error.response){
+                        console.log('详细错误信息:',error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                      }
+                      else{
+                        console.log('详细错误息:',error.message);
+                      }
+                      layer.msg("服务器异常,"+error.response.status, {icon: 5,time:1500});
+                      layer.close(index);
+                });
+        });
+
+      } else if(layEvent === 'del'){ //删除
+
+        if(data.username=='chennl' || data.username=='fangjj' ||data.username=='fangdy'){
+          layer.msg("该用户信息不允许删除", {icon: 6,time:2000});
+          return
+        }
+        
+        layer.confirm('真的删除该用户吗?', function(index){ 
+          axios.post('/auth/user/del/'+data.id, JSON.stringify(data.id))
+                .then(function (response) {
+                  console.log(response);
+                    data = response.data;
+                    if( data.errcode ==200){
+                      layer.msg( data.errmsg, {icon: 6,time:1500});
+                    }else{
+                      layer.msg(data.errmsg, {icon: 5,time:1500});
+                    }
+                    layer.close(index);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                      if(error.response){
+                        console.log('详细错误信息:',error.response.data);
+                        console.log(error.response.status);
+                        console.log(error.response.headers);
+                      }
+                      else{
+                        console.log('详细错误息:',error.message);
+                      }
+                      layer.msg("服务器异常,"+error.response.status, {icon: 5,time:1500});
+                      layer.close(index);
+                });
+
+          // $.ajax({
+          //   url:'/auth/user/del/'+data.id,
+          //   type: "POST",
+          //   contentType: "application/json; charset=utf-8",
+          //   data: JSON.stringify(data.id),
+          //   dataType: 'json',
+          //   async:false,
+          //   success: function(msg){
+          //     if( msg.code ==200){
+          //       obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+          //       layer.msg("用户信息删除成功", {icon: 6,time:2000});
+          //       layer.close(index);
+          //     }else{
+          //       layer.msg("用户信息删除失败", {icon: 5,time:2000});
+          //     }
+          //   },
+          //   error: function(XMLHttpRequest, textStatus, errorThrown){
+          //         layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+          //         return false;
+          //     }
+          // });
+        });
+      } else if(layEvent === 'edit'){ //编辑     
+          layer.open({
+                type: 2,
+                title: "修改用户信息",
+                area: ['618px', '488px'],
+                content:'/auth/user/edit/'+data.id,
+                success:function(){
+                  // $("#id").val(data.id);
+                  // $("#username").val(data.wbscode);
+                  // $("#nickname").val(data.name);
+                  // $("#email").val(data.year);
+                  // $("#about_me").val(data.remark);
+                },
+                end:function(){
+           
+                }
+          });
+      }//编辑结束
+       
+    });
+   
+
+
+  });
+</script>
+ 
+ 
+{% endblock %}
+ 
+ 
+    
+ 
+

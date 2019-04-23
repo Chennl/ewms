@@ -1,0 +1,26 @@
+*
+* table.html css
+*/
+
+.table-main {
+  font-size: 1.4rem;
+  padding: .5rem;
+}
+
+.table-main button {
+  background: #fff;
+}
+
+.table-check {
+  width: 30px;
+}
+
+.table-code {
+    width: 150px;
+  }
+.table-name{
+width: 250px;
+}
+
+
+ 

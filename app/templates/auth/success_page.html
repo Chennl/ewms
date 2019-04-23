@@ -1,0 +1,13 @@
+{% extends 'layui_base_simple.html' %}
+{% block bodyscript %}
+<script> 
+layui.use(['layer', 'form' ],function(){
+      var layer = layui.layer
+      ,form = layui.form
+      ,$ = layui.jquery;
+        layer.msg("{{msg}}", {icon: 6, time: 2000});
+        var index = parent.layer.getFrameIndex(window.name); 
+        setTimeout(function(){ parent.layer.close(index);}, 1000); 
+});
+</script>
+{% endblock%}

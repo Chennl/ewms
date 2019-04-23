@@ -1,0 +1,120 @@
+{% extends 'layui_base_simple.html' %}
+ 
+ 
+{% block content %}
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md12">
+        <div class="layui-card">
+          <div class="layui-card-header">用户资料</div>
+          <div class="layui-card-body" pad15="">
+            <form class="layui-form" action="" id="profileform" method ="POST" lay-filter="profile" ENCTYPE="multipart/form-data">
+          
+              <div class="layui-form-item">
+                  {{ form.hidden_tag() }}
+                  <input type="hidden" name="id" id="id" value="{{form.id.data}}" class="layui-input" />
+                <label class="layui-form-label">用户名</label>
+              
+                <div class="layui-input-inline">
+                  <input type="text" name="username" id="username" lay-verify="username" value="{{form.username.data}}"   {% if not is_new %} readonly=""{%endif%}  autocomplete="off"  class="layui-input">
+                </div>
+              
+                <div class="layui-form-mid layui-word-aux">  {% if is_new %}输入唯一用户名，用于后台登入{% else%}用户名用于后台登入,不能修改{% endif%}</div>
+                {% for error in form.username.errors %}
+                <p><span style="color: red;">[{{ error }}]</span></p>
+                {% endfor %}
+    
+              </div>
+              <div class="layui-form-item">
+                <label class="layui-form-label">昵称</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="nickname" lay-verify="nickname" value="{{form.nickname.data}}" autocomplete="off"   placeholder="" class="layui-input">
+                </div>
+                {% for error in form.nickname.errors %}
+                <p><span style="color: red;">[{{ error }}]</span></p>
+                {% endfor %}
+              </div>
+    
+
+              <div class="layui-form-item">
+                <label class="layui-form-label">邮箱</label>
+                <div class="layui-input-inline">
+                  <input type="text" name="email"  lay-verify="email" value="{{form.email.data}}" autocomplete="off" class="layui-input">
+                </div>
+                {% for error in form.email.errors %}
+                <p><span style="color: red;">[{{ error }}]</span></p>
+                {% endfor %}
+              </div>
+
+              <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">关于我</label>
+                <div class="layui-input-block">
+                  <textarea name="about_me" placeholder="说点什么吧" class="layui-textarea" value="{{form.about_me.data}}" lay-verify="about_me"  style="width:380px"></textarea>
+                </div>
+                {% for error in form.about_me.errors %}
+                <p><span style="color: red;">[{{ error }}]</span></p>
+                {% endfor %}
+              </div>
+    
+              {% for error in form.id.errors %}
+              <p><span style="color: red;">[{{ error }}]</span></p>
+              {% endfor %}
+
+              <div class="layui-form-item">
+                <div class="layui-input-block">
+                  <button class="layui-btn" lay-submit="" lay-filter="setprofile">立即提交</button>
+                  <button type="reset" class="layui-btn layui-btn-primary">重新填写</button>
+                </div>
+              </div>
+            </form>      
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block bodyscript %}
+
+<script>
+  //JavaScript代码区域
+  layui.use(['layer', 'form' ],function(){
+      var layer = layui.layer
+      ,form = layui.form
+      ,$ = layui.jquery;
+    //自定义验证规则
+    form.verify({
+      username: function(value, item){ //value：表单的值、item：表单的DOM对象
+          if(value.length<4){
+            return '请填写多于4位字符的用户名';
+          }
+          if(!new RegExp("^[a-zA-Z0-9_\u4e00-\u9fa5\\s·]+$").test(value)){
+            return '用户名不能有特殊字符';
+          }
+          if(/(^\_)|(\__)|(\_+$)/.test(value)){
+            return '用户名首尾不能出现下划线\'_\'';
+          }
+          if(/^\d+\d+\d$/.test(value)){
+            return '用户名不能全为数字';
+          }
+        },
+      nickname: function(value){
+        if(value.length<1){
+            return '请填写昵称';
+          }
+      },
+      about_me:function(value,item){
+        if( value.length>140){
+          return "关于我不能多于140个字";
+        }
+      }
+     });
+ 
+      //监听提交
+      form.on('submit(setprofile)', function(data){
+        return true;
+      }); 
+    
+
+  });
+</script>
+{% endblock %}

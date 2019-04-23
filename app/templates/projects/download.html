@@ -1,0 +1,64 @@
+{% extends 'layui_base.html' %}
+{% block content %}
+<span class="layui-breadcrumb" lay-separator="»">
+    <a href="">数据管理</a>
+    <a href="">数据下载</a>
+ </span>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend><i class="layui-icon layui-icon-user" style="font-size: 22px;"></i>数据下载 </legend>
+    <form class="layui-form layui-from-pane" action="/project/download/material" style="margin-top:20px" >
+      <!-- <input type="hidden" name="id"  id="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">检索条件</label>
+            <div class="layui-input-block">
+                <input type="text" name="specification"  id="specification"   autocomplete="off" placeholder="请输入规格型号" class="layui-input">
+            </div>
+        </div> -->
+        <div class="layui-form-item" style="margin-top:40px">
+            <div class="layui-input-block">
+                <button class="layui-btn " lay-submit lay-filter="formsubmit">下载材料信息</button>
+            </div>
+        </div>
+    </form>
+    <form class="layui-form layui-from-pane" action="/project/download/project" style="margin-top:20px" >
+ 
+        <div class="layui-form-item" style="margin-top:40px">
+            <div class="layui-input-block">
+                <button class="layui-btn " lay-submit lay-filter="formsubmit">下载工程信息</button>
+            </div>
+        </div>
+    </form>
+    <form class="layui-form layui-from-pane" action="/project/download/warehousenote" style="margin-top:20px" >
+ 
+        <div class="layui-form-item" style="margin-top:40px">
+            <div class="layui-input-block">
+                <button class="layui-btn " lay-submit lay-filter="formsubmit">下载仓库单据</button>
+            </div>
+        </div>
+    </form>
+</fieldset>
+ 
+
+</div>
+{% endblock %}
+{% block bodyscript %}
+ 
+
+<script>
+
+//JavaScript代码区域
+layui.use(['layer', 'form','element', 'table','util'],function(){
+    var layer = layui.layer,table = layui.table,$ = layui.jquery;
+    
+   
+
+  });
+</script>
+
+   
+{% endblock %}
+ 
+ 
+    
+ 
+

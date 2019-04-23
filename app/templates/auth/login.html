@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>登入 - layuiAdmin</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <link rel="shortcut icon" href="{{url_for('static',filename='favicon.ico')}}" />
+  <link rel="bookmark" href="/favicon.ico" type="image/x-icon"　/>
+  <link rel="stylesheet" href="{{url_for('static',filename='layui/css/layui.css')}}" media="all">
+ 
+  <link rel="stylesheet" href="{{url_for('static',filename='layuiadmin/style/login.css')}}" media="all">
+  <style>
+    .login-main-box {
+          width: 375px;
+          margin: 0 auto;
+          box-sizing: border-box;
+      }
+  </style>
+</head>
+<body class="layui-bg-cyan"  >
+   
+    <div class="layui-row" style="height: 25%">
+    </div>
+    <div class="layui-row">
+  <div class="" style="display: block!important;" >
+
+    <div class="login-main-box" style="padding: 10px;background-color:white!important; ">
+      <div class="" style="align-content: center; padding: 20px">
+          <div class="layui-row" style="margin-bottom: 20px;">
+        <div style="display: inline-block"><img src="{{url_for('static',filename='images/app-logo.png')}}" width="80px" height="80px" alt=""></div>
+        <div style="display: inline-block"> 
+            <h2 style='font-family: Verdana,Arial,Helvetica,sans-serif;text-align: center; color: #000;'> EMS工程材料管理</h2></div>
+      </div>
+
+      <!-- <div class="layui-container">  
+          <div class="layui-row">
+            <div class="layui-col-md5">
+                <img src="{{url_for('static',filename='images/app-logo.png')}}" width="100px" height="100px" alt="">
+            </div>
+            <div class="layui-col-md7">
+                <h2 style='font-family: Verdana,Arial,Helvetica,sans-serif;text-align: center; color: #000;'> EMS工程材料管理</h2>
+            </div>
+          </div>
+
+      </div> -->
+      <form class="layui-form" id="loginForm"  action="" method="post">
+          {{ form.hidden_tag() }}
+        <div class="layui-form-item">
+          <label class="layui-icon" for="username"></label>
+          <input type="text" name="username" id="username" lay-verify="required" placeholder="用户名" class="layui-input">
+        </div>
+        <div class="layui-form-item">
+          <label class="layui-icon" for="password"></label>
+          <input type="password" name="password" id="password" lay-verify="required" placeholder="密码" class="layui-input">
+        </div>
+        <div class="layui-form-item">
+            <input type="checkbox" name="remember_me" id="remember_me" title="记住我" lay-skin="primary"  class="layui-input">
+        </div>
+    
+      
+        <div class="layui-form-item"     style="margin-top: 20px; "       >
+          <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-login-submit">登 入</button>
+        </div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="layui-form-item" style="text-align: center;">
+            <p>
+              {% for message in messages %}
+              <span style="color: red; font-size: small">{{ message }}</span>
+              {% endfor %}
+            </p>
+          
+          </div>
+          {% endif %}
+          {% endwith %}
+      </form>
+    </div>
+    
+    
+  </div>
+  </div>
+
+  <script src="{{url_for('static',filename='layui/layui.js')}}"></script>
+  <script>
+  layui.use(['form' ], function(){
+    var $ = layui.$
+    ,form = layui.form;
+
+    form.render();
+
+
+
+    //提交
+    form.on('submit(LAY-user-login-submit)', function(obj){
+    
+      //请求登入接口
+      admin.req({
+        url: '#'
+        ,data: obj.field
+        ,done: function(res){
+          //请求成功后，写入 access_token
+          layui.data(setter.tableName, {
+            key: setter.request.tokenName
+            ,value: res.data.access_token
+          });
+          
+          //登入成功的提示与跳转
+          layer.msg('登入成功', {
+            offset: '15px'
+            ,icon: 1
+            ,time: 1000
+          }, function(){
+            location.href = '../'; //后台主页
+          });
+        }
+      });
+      
+    });
+     
+    
+  });
+  </script>
+</body>
+</html>

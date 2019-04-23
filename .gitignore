@@ -1,0 +1,5 @@
+# user-specific files
+*.pyc
+migrations/
+.vscode/
+venv/

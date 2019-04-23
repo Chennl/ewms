@@ -1,0 +1,125 @@
+{% extends '_base.html' %}
+{% block style %}
+<link rel="stylesheet" scr="{{url_for('static',filename='css/material.css')}}" />
+<style>
+    input.error { border: 1px solid red; }
+    .error {  color: red;    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="am-cf am-padding am-padding-bottom-0">
+    <div class="am-fl am-cf" style="color:gray"><strong class="am-text-primary am-text-lg">基础资料</strong> »<small >材料信息维护</small></div>
+</div>
+
+  <hr>
+  <div class="am-tabs am-margin" data-am-tabs>
+        <ul class="am-tabs-nav am-nav am-nav-tabs">
+          <li class="am-active"><a href="#tab1">基本信息</a></li>
+        </ul>
+        <div class="am-tabs-bd">
+                <div class="am-tab-panel am-fade am-in am-active" id="tab1">
+                        <div class="am-g"  >
+                        <div class="am-u-sm-12" >
+                        <form class="am-form" action="" id="materialForm" method="post"> 
+                                {{ form.hidden_tag() }} 
+                                {{ form.id(type="hidden") }}
+                            <div class="am-form-group">
+                                {{form.code.label( class="am-form-label")}}
+                                 {{form.code(class="am-form-field",required='',maxlength="32")}}
+                                {% for error in form.code.errors %}
+                                <span style="color: red;">[{{ error }}]</span>
+                                {% endfor %}
+                            </div>
+                            <div class="am-form-group">
+                                    {{form.category.label( class="am-form-label")}}
+                                     {{form.category(class="am-form-field",required='',maxlength="32")}}
+                                    {% for error in form.category.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                    {% endfor %}
+                            </div>
+                            
+                            <div class="am-form-group">
+                                    {{form.name.label}}
+                                    {{form.name(class="am-form-field")}}
+                                    {% for error in form.name.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                    {% endfor %}
+                            </div>
+                            <div class="am-form-group">
+                                    {{form.specification.label}}
+                                    {{form.specification(class="am-form-field")}}
+                                    {% for error in form.specification.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                    {% endfor %}
+                            </div>
+                            <div class="am-form-group">
+                                    {{form.unit.label}}
+                                    {{form.unit(class="am-form-field")}}
+                                    {% for error in form.unit.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                    {% endfor %}
+                            </div>                            
+                            <div class="am-form-group">
+                                    {{form.remark.label}}
+                                    {{form.remark(class="am-form-field")}}
+                                    {% for error in form.remark.errors %}
+                                    <span style="color: red;">[{{ error }}]</span>
+                                    {% endfor %}
+                            </div>
+                            
+                            <div class="am-margin">
+                                <button type="submit" class="am-btn am-btn-primary am-radius"><span class="am-icon-save" style="margin-right:5px"></span>提交保存</button>
+                                <a class="am-btn am-btn-danger" href="{{url_for('materials.index',page=1)}}" target="_blank">放弃保存</a>
+                            </div>
+                            </form>
+                    </div>
+                  </div>
+                </div>
+        </div>
+  </div>
+  
+{% endblock %}
+{% block bodyscripts %}
+  <script>
+      $(function(){
+
+        $("#materialForm").validate({
+            errorElement:"span",
+            //debug:true, 
+            rules:{
+                code:{
+                    required:true,
+                    maxlength:32
+                },
+                name:{
+                    required:true,
+                    maxlength:32
+                },
+                specification:{
+                    required:true,
+                },
+                unit: {
+                    required:true
+                },
+            },
+            messages:{
+                code:{
+                   required: '请输入材料编号。',
+                   minlength:'材料编号不能小于5数字或字母。'
+                },
+                name:'请输入材料名称。',
+                specification:'请输入材料规格型号。',
+                unit:'请输入单位。',
+
+            },
+            submitHandler:function(form){
+           // alert("submit!");   
+            form.submit();
+        }  
+        });
+
+
+      });
+  </script>
+{% endblock %}
+  

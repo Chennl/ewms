@@ -1,0 +1,29 @@
+1. 2019-03-31:  User token 相关  未发布
+2. 4.2 api folder project.py 修改 可以单独发布
+3. 4.2 工程信息index ,材料index  done
+
+4. 4.21 pip install flask-mail    pip install flask-httpauth    to be upgraded
+     static/jquery_cookie,js
+
+
+按钮颜色
+background-color: #5CD47D;
+background-color: #5694E9;
+
+只有边框按钮:
+badge {
+    top: -2px;
+    height: 16px;
+    line-height: 16px;
+    padding: 0 5px;
+    margin-right: 10px;
+    font-size: 12px;
+    border: 1px solid #5FB878;
+    background: none;
+    color: #5FB878;
+}
+
+
+
+2019.4.10:   上传文件目录创建: ewms/uploads
+

@@ -1,0 +1,462 @@
+{% extends 'layui_base.html' %}
+{% block content %}
+<span class="layui-breadcrumb" lay-separator="»">
+    <a href="">日常管理</a>
+    <a href="">工程信息</a>
+ </span>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend><i class="layui-icon layui-icon-component" style="font-size: 22px;"></i>工程信息管理 </legend>
+</fieldset>
+<table class="layui-table" id="materialTable" lay-filter="materialTable"></table>
+<!-- <div class="layui-card" style="padding: 15px;">
+    <div class="layui-card-header">工程信息</div>
+    <div class="layui-card-body">  layui-icon-component
+        <table class="layui-table" id="materialTable" lay-filter="materialTable"></table>
+    </div>
+</div> -->
+{% endblock %}
+{% block bodyscript %}
+
+<script type="text/html" id="toolbarDemo">
+  <div class="searchTable layui-form">
+    <!-- <div class="layui-inline">
+        <label class="layui-form-label">工程年份</label>
+        <div class="layui-input-inline">
+          <input type="text" class="layui-input" name="projectYear" id='projectYear' placeholder="">
+        </div>
+      </div> -->
+
+      工程名称
+      <div class="layui-inline">
+        <input class="layui-input" name="name" id="nameArg" autocomplete="off">
+      </div>
+      性质
+      <div class="layui-inline">
+        <input class="layui-input" name="category" id="categoryArg" autocomplete="off">
+      </div>
+      片区
+      <div class="layui-inline">
+        <input class="layui-input" name="area" id="areaArg" autocomplete="off">
+      </div>
+      预留号
+      <div class="layui-inline">
+        <input class="layui-input" name="reserveCode" id="reserve_codeArg" autocomplete="off">
+      </div>
+      <button class="layui-btn"  lay-event="reload"  data-type="reload"><i class="layui-icon">&#xe615;</i>搜索</button>
+      <button class="layui-btn"  lay-event="new"  data-type="new"><i class="layui-icon">&#xe654;</i>添加工程</button>
+  </div>
+</script>
+
+<script type="text/html" id="rowtoolbar">
+ 
+  <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon">&#xe640;</i>删除</a>
+  <a class="layui-btn layui-btn-xs" lay-event="bom"><i class="layui-icon">&#xe60a;</i>材料清单</a>
+</script>
+
+<script>
+
+//JavaScript代码区域
+layui.use(['layer', 'form','element', 'table','util','laydate'],function(){
+    var layer = layui.layer
+    ,form = layui.form
+    ,element = layui.element
+    ,table = layui.table
+    ,util = layui.util
+    ,laydate = layui.laydate
+    ,$ = layui.jquery;
+    
+    laydate.render({
+    elem: '#projectYear'
+    ,type: 'year'
+    });
+
+  // 表格渲染
+    table.render({
+        elem: '#materialTable'
+     //   ,height: vip_table.getFullHeight()
+        ,toolbar:'#toolbarDemo'
+        ,title: '工程信息表'
+        ,url: '/api/projects' //数据接口
+        ,page: {
+          limit:30
+        }//开启分页
+       // ,even: true //开启隔行背景
+        ,request: {
+            pageName: 'page' //页码的参数名称，默认：page
+           ,limitName: 'per_page' //每页数据量的参数名，默认：limit
+        }
+        ,parseData:function(res){//res 即为原始返回的数据
+          return {
+            "code": res.status, //解析接口状态
+            "msg": 'res.message', //解析提示文本
+            "count": res._meta.total_items, //解析数据长度
+            "data": res.items //解析数据列表
+          };
+        }
+        ,cols: [[ //表头
+    //  {field: 'id', title: 'ID',width:80, fixed: 'left'}
+        {type:'numbers',title:'序号'}
+    //   ,{field: 'id', title: 'ID',width:40}
+        ,{field: 'area', title: '片区',width:80,sort: true}
+    //  ,{field: 'wbscode', title: '工程编号',width:230}
+        ,{field: 'category', title: '工程性质',width:100,sort: true}
+        ,{field: 'reserve_code', title: '预留号',width:130,sort: true}
+        ,{field: 'name', title: '工程名称',width:420}
+        ,{field: 'remark', title: '备注',width:420}
+     // ,{field: 'year', title: '工程年份',width:120, sort: true}
+      //  ,{field: 'updated_date', title: '更新时间',width:120, sort: true,templet:function(d){return util.toDateString(d.updated_date*1000,"yyyy-MM-dd HH:mm:ss");}}
+        ,{fixed: 'right', title:'操作',width:250, align:'center', toolbar: '#rowtoolbar'}
+       
+        ]]
+        ,done:function(res){
+          console.log("done:"+res);
+          laydate.render({
+          elem: '#projectYear'
+          ,type: 'year'
+          });
+        }
+    });
+    
+    
+
+    //监听弹出框表单提交，formdata是修改界面的表单数据'submit(demo11),是修改按钮的绑定
+    function setFormSubmitHandler(obj,data){
+      form.on('submit(formsubmit)',function(formdata){
+        if(parseInt(formdata.field.id) > 0){
+           $.ajax({
+                url:'/api/projects/'+formdata.field.id,
+                type: "PUT",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(formdata.field),
+                dataType: 'json',
+                async:false,
+                success:function (msg) {
+                  console.log(msg);  
+                    if(msg.code==200){
+                        layer.closeAll('loading');
+                        layer.load(2);
+                        layer.msg("工程信息更新成功", {icon: 6});
+                        setTimeout(function(){
+                            obj.update({
+                                  name:formdata.field.name,
+                                  wbscode:formdata.field.wbscode,
+                                  year:formdata.field.year,
+                                  remark:formdata.field.remark,
+                                  updated_date: new Date()
+                              });//修改成功修改表格数据不进行跳转
+                              layer.closeAll();//关闭所有的弹出层
+                        }, 1000);
+                      //  加载层-风格
+                    }else{
+                        layer.msg("工程信息更新失败", {icon: 5});
+                    }
+                    return false;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                    return false;
+                }
+          });
+        } 
+        return false;
+      });
+    }
+    //添加材料
+    function setNewFormSubmitHandler(){
+      form.on('submit(newformsubmit)',function(formdata){
+            $.ajax({
+                  url:'/api/projects',
+                  type: "POST",
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify(formdata.field),
+                  dataType: 'json',
+                  async:false,
+                  success:function (msg) {
+                    console.log(msg);  
+                      if(msg.code==200){
+                          layer.closeAll('loading');
+                          layer.load(2);
+                          layer.msg("工程信息添加成功", {icon: 6});
+                          setTimeout(function(){
+                              //更新成功刷新reload 
+                            // $("#btnReload").click();
+                            table.reload('materialTable',{//执行重载
+                                page:{
+                                  page:1
+                                }
+                                ,where:{
+                                  name:'',
+                                  year:''
+                                }
+                            });
+
+                              layer.closeAll();//关闭所有的弹出层
+                          }, 1000);
+                      }else{
+                          layer.msg("工程信息添加失败", {icon: 5});
+                      }
+                      return false;
+                  },
+
+
+
+       
+
+                  error: function(XMLHttpRequest, textStatus, errorThrown){
+                    layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                    return false;
+                  }
+            });
+          return false;
+        });
+    }
+    
+
+    
+    //头工具栏事件
+    table.on('toolbar(materialTable)', function(obj){
+    //var checkStatus = table.checkStatus(obj.config.id);
+    switch(obj.event){
+      case 'reload':
+        var projectName =$('#nameArg').val();
+        var projectCategory = $('#categoryArg').val();
+        var projectArea =$('#areaArg').val();
+        var projectReserveCode = $('#reserve_codeArg').val();
+        // var projectName =$('#dataReload');
+        // var projectYear = $('#projectYear');
+        var index = layer.msg('查询中，请稍候...',{icon:16,time:false,shade:0});
+        setTimeout(function(){
+          table.reload('materialTable',{//执行重载
+              page:{
+                page:1
+              }
+              ,where:{
+                name:projectName,
+                category:projectCategory,
+                area:projectArea,
+                reservecode:projectReserveCode
+              }
+          });
+          layer.close(index);
+        },800);
+       break;
+ 
+     case 'new':
+        layer.open({
+            type: 1,
+            title: "添加新工程",
+            area: ['718px', '588px'],
+            content: $("#popNewMaterial"),
+            success:function(){
+              $("#id").val('0');
+              $("#wbscode").val('');
+              $("#name").val('');
+              $("#year").val('');
+              $("#remark").val('');
+              }
+        });
+        setNewFormSubmitHandler();  
+        //window.location.href="/project/new";  
+       break;
+      case 'isAll':
+        layer.msg(checkStatus.isAll ? '全选': '未全选');
+      break;
+    };
+  });
+
+    //监听行工具条
+    table.on('tool(materialTable)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+      var data = obj.data; //获得当前行数据
+      var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+      var tr = obj.tr; //获得当前行 tr 的DOM对象
+      if(layEvent === 'detail'){ //查看
+        //do somehing
+      } else if(layEvent === 'del'){ //删除
+        layer.confirm('真的删除该工程吗?', function(index){  
+          $.ajax({
+            url:'/api/projects/'+data.id,
+            type: "DELETE",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data.id),
+            dataType: 'json',
+            async:false,
+            success: function(msg){
+              if( msg.code ==200){
+                obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                layer.msg("工程信息删除成功", {icon: 6});
+                layer.close(index);
+              }else{
+                layer.msg("工程信息删除失败", {icon: 5});
+              }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown){
+                  layer.msg("服务器异常,"+XMLHttpRequest.status+"-"+XMLHttpRequest.statusText, {icon: 5});
+                  return false;
+              }
+          });
+        });
+      } else if(layEvent === 'edit'){ //编辑     
+          layer.open({
+                //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+                type: 1,
+                title: "修改工程信息",
+                area: ['718px', '588px'],
+                content: $("#popUpdateProject"),//引用的弹出层的页面层的方式加载修改界面表单
+                success:function(){
+                  $("#id").val(data.id);
+                  $("#wbscode").val(data.wbscode);
+                  $("#name").val(data.name);
+                  $("#year").val(data.year);
+                  $("#area").val(data.area);
+                  $("#category").val(data.category);
+                  $("#reserve_code").val(data.reserve_code);
+                  $("#remark").val(data.remark);
+                }
+          });
+          setFormSubmitHandler(obj,data);
+        //  window.location.href="/project/"+data.id+"/edit";
+      }//编辑结束
+      else if(layEvent === 'bom'){
+        window.location.href="/project/"+data.id+"/edit";  
+ 
+        // layer.open({
+        //               //layer提供了5种层类型。可传入的值有：0（信息框，默认）1（页面层）2（iframe层）3（加载层）4（tips层）
+        //               type: 2,
+        //               title: "修改工程信息",
+        //               area: ['718px', '388px'],
+        //               content:"/project/bom?id="+data.id,//引用的弹出层的页面层的方式加载修改界面表单
+        //               success:function(){
+        //                 $("#id").val(data.id);
+        //                 $("#wbscode").val(data.wbscode);
+        //                 $("#name").val(data.name);
+        //                 $("#year").val(data.year);
+        //                 $("#remark").val(data.remark);
+        //               }
+        //   });
+      }
+    });
+   
+
+
+  });
+</script>
+
+<div class="layui-row" id="popUpdateProject" style="display:none;">
+    <div class="layui-col-md10">
+        <form class="layui-form layui-from-pane" action="" style="margin-top:20px" >
+          <input type="hidden" name="id"  id="id">
+            <div class="layui-form-item">
+                <label class="layui-form-label">工程编号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="wbscode"  id="wbscode"   autocomplete="off" placeholder="请输入工程编号" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">工程名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" id="name" required  lay-verify="required" autocomplete="off" placeholder="请输入工程名称" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">工程年份</label>
+                <div class="layui-input-block">
+                    <input type="text" name="year"  id="year"    autocomplete="off" placeholder="请输入工程年份" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">片区</label>
+              <div class="layui-input-block">
+                  <input type="text" name="area"  id="area"    autocomplete="off" placeholder="请输入工程片区" class="layui-input">
+              </div>
+          </div>
+          <div class="layui-form-item">
+            <label class="layui-form-label">工程性质</label>
+            <div class="layui-input-block">
+                <input type="text" name="category"  id="category"    autocomplete="off" placeholder="请输入工程性质" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+          <label class="layui-form-label">预留号</label>
+          <div class="layui-input-block">
+              <input type="text" name="reserve_code"  id="reserve_code"    autocomplete="off" placeholder="请输入预留号" class="layui-input">
+          </div>
+      </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注</label>
+                <div class="layui-input-block">
+                    <input type="text" name="remark"  id="remark"    autocomplete="off"  class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item" style="margin-top:40px">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="formsubmit">立即提交</button>
+                </div>
+            </div>
+        </form>
+ </div>
+</div>
+
+ <div class="layui-row" id="popNewMaterial" style="display:none;">
+    <div class="layui-col-md10">
+        <form class="layui-form layui-from-pane" action="" style="margin-top:20px" >
+          <input type="hidden" name="id"  id="id">
+          <div class="layui-form-item">
+            <label class="layui-form-label">工程编号</label>
+            <div class="layui-input-block">
+                <input type="text" name="wbscode"  id="wbscode"   autocomplete="off" placeholder="请输入工程编号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">工程名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" id="name" required  lay-verify="required" autocomplete="off" placeholder="请输入工程名称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">工程年份</label>
+            <div class="layui-input-block">
+                <input type="text" name="year"  id="year"   autocomplete="off" placeholder="请输入工程年份" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+          <label class="layui-form-label">片区</label>
+          <div class="layui-input-block">
+              <input type="text" name="area"  id="area"    autocomplete="off" placeholder="请输入工程片区" class="layui-input">
+          </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">工程性质</label>
+        <div class="layui-input-block">
+            <input type="text" name="category"  id="category"    autocomplete="off" placeholder="请输入工程性质" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+      <label class="layui-form-label">预留号</label>
+      <div class="layui-input-block">
+          <input type="text" name="reserve_code"  id="reserve_code"    autocomplete="off" placeholder="请输入预留号" class="layui-input">
+      </div>
+  </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark"  id="remark"    autocomplete="off"  class="layui-input">
+            </div>
+        </div>
+      
+
+            <div class="layui-form-item" style="margin-top:40px">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="newformsubmit">立即提交</button>
+                </div>
+            </div>
+        </form>
+   </div>
+ </div>
+{% endblock %}
+ 
+ 
+    
+ 
+

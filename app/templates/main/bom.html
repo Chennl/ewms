@@ -1,0 +1,135 @@
+{% extends '_base.html' %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+	<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="../../extensions/Editor/css/editor.dataTables.min.css">
+<style>
+ td{ padding: 1px;}
+.project-wbscode{width:150}
+.project-name{width:300}
+.project-year{width:50}
+.project-date{width:80}
+</style>  
+  
+{% endblock %}
+
+{% block content %}
+<div class="am-cf am-padding am-padding-bottom-0">
+    <div class="am-fl am-cf" style="color:gray"><strong class="am-text-primary am-text-lg">工程管理</strong> »<small >工程需求清单</small></div>
+</div>
+
+  <hr>
+  <div class="am-g"  >
+        <div class="am-u-sm-12" >
+        <form class="am-form-inline" action="" method="post"> 
+                {{ form.hidden_tag() }}
+            <div class="am-input-group am-input-group-secondary">
+                <span class="am-input-group-label">编 号</span>
+                {{form.wbscode(class="am-form-field")}}
+            </div>
+ 
+            <div class="am-input-group am-input-group-secondary">
+                <span class="am-input-group-label">名 称</span>
+                {{form.name(class="am-form-field")}}
+            </div>
+            <div class="am-input-group am-input-group-secondary">
+                <span class="am-input-group-label">工程年份</span>
+                {{form.year(class="am-form-field")}}
+            </div>
+            <button class="am-btn am-btn-secondary">
+                <i class="am-icon-search"></i>查询
+            </button>
+            <a href="{{url_for('main.add')}}" class="am-btn am-btn-default  am-text-secondary"><span class="am-icon-plus"></span>新增</a>
+            </form>       
+        </div>
+  </div>
+
+  <hr>
+
+  <div class="am-g">
+    <div class="am-u-sm-12">
+          
+      
+    </div>
+  </div>
+{% endblock %}
+
+{% block bodyscripts %}
+<script>
+var editor; // use a global for the submit and return data rendering in the examples
+
+$(document).ready(function() {
+	editor = new $.fn.dataTable.Editor( {
+		ajax: "../php/staff.php",
+		table: "#example",
+		fields: [ {
+                    label: "First name:",
+                    name: "first_name"
+                    }, {
+                        label: "Last name:",
+                        name: "last_name"
+                    }, {
+                        label: "Position:",
+                        name: "position"
+                    }, {
+                        label: "Office:",
+                        name: "office"
+                    }, {
+                        label: "Extension:",
+                        name: "extn"
+                    }, {
+                        label: "Start date:",
+                        name: "start_date",
+                        type: "datetime"
+                    }, {
+                        label: "Salary:",
+                        name: "salary"
+                    }
+		        ]
+    } );
+
+	// Activate an inline edit on click of a table cell
+	$('#example').on( 'click', 'tbody td:not(:first-child)', function (e) {
+		editor.inline( this );
+	} );
+
+	$('#example').DataTable( {
+		dom: "Bfrtip",
+		ajax: "../php/staff.php",
+		order: [[ 1, 'asc' ]],
+		columns: [
+			{
+				data: null,
+				defaultContent: '',
+				className: 'select-checkbox',
+				orderable: false
+			},
+			{ data: "first_name" },
+			{ data: "last_name" },
+			{ data: "position" },
+			{ data: "office" },
+			{ data: "start_date" },
+			{ data: "salary", render: $.fn.dataTable.render.number( ',', '.', 0, '$' ) }
+		],
+		select: {
+			style:    'os',
+			selector: 'td:first-child'
+		},
+		buttons: [
+			{ extend: "create", editor: editor },
+			{ extend: "edit",   editor: editor },
+			{ extend: "remove", editor: editor }
+		]
+	} );
+} );
+</script>
+{% endblock  %}

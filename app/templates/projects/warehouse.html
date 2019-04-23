@@ -1,0 +1,198 @@
+{% extends 'layui_base.html' %}
+{% block style %}
+<link rel="stylesheet" href="{{url_for('static',filename='layui/iconfont/iconfont.css')}}">
+<style>
+.row-toolbar{
+  display: inline-block;
+  margin-left:5px;
+  margin-right:5px;
+}
+</style>
+{% endblock%}
+{% block content %}
+<span class="layui-breadcrumb" lay-separator="»">
+    <a href="">日常管理</a>
+    <a href="">仓库管理</a>
+ </span>
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+    <legend><i class="layui-icon layui-icon-cart" style="font-size: 22px;"></i>工程仓库管理 </legend>
+</fieldset>
+<table class="layui-table" id="materialTable" lay-filter="materialTable"></table>
+
+{% endblock %}
+{% block bodyscript %}
+<script type="text/html" id="toolbarDemo">
+    <div class="searchTable layui-form">
+      工程名称
+      <div class="layui-inline">
+        <input class="layui-input" name="name" id="nameArg" autocomplete="off">
+      </div>
+      工程性质
+      <div class="layui-inline">
+        <input class="layui-input" name="category" id="categoryArg" autocomplete="off">
+      </div>
+      片区
+      <div class="layui-inline">
+        <input class="layui-input" name="area" id="areaArg" autocomplete="off">
+      </div>
+      预留号
+      <div class="layui-inline">
+        <input class="layui-input" name="reserveCode" id="reserve_codeArg" autocomplete="off">
+      </div>
+        <button class="layui-btn"  lay-event="reload"  data-type="reload"><i class="layui-icon">&#xe615;</i>查找工程</button>
+    </div>
+</script>
+ 
+<script type="text/html" id="rowtoolbar">
+  <a class="layui-btn   layui-btn-normal layui-btn-xs" lay-event="inbound"><i class="layui-icon iconfont" >&#xe676;</i>入库单</a>
+  <a class="layui-btn layui-btn-danger  layui-btn-xs" lay-event="outbound"><i class="layui-icon iconfont" >&#xe675;</i>出库单</a>
+  <a class="layui-btn  layui-btn-warm layui-btn-xs" lay-event="return"><i class="layui-icon layui-icon-refresh"></i>退料单</a>  
+   <a class="layui-btn   layui-btn-xs" lay-event="inventory"><i class="layui-icon">&#xe660;</i>余库查询</a>  
+</script> 
+
+<script>
+
+//JavaScript代码区域
+layui.use(['layer', 'form','element', 'table','util','laydate'],function(){
+    var layer = layui.layer
+    ,form = layui.form
+    ,element = layui.element
+    ,table = layui.table
+    ,util = layui.util
+    ,laydate = layui.laydate
+    ,$ = layui.jquery;
+    
+    laydate.render({
+    elem: '#projectYear'
+    ,type: 'year'
+    });
+
+
+  // 表格渲染
+    table.render({
+        elem: '#materialTable'
+     //   ,height: vip_table.getFullHeight()
+        ,toolbar:'#toolbarDemo'
+        ,title: '工程信息表'
+        ,url: '/api/projects' //数据接口
+        ,page: {
+          limit:15
+        }//开启分页
+       // ,even: true //开启隔行背景
+        ,request: {
+            pageName: 'page' //页码的参数名称，默认：page
+           ,limitName: 'per_page' //每页数据量的参数名，默认：limit
+        }
+        ,parseData:function(res){//res 即为原始返回的数据
+          return {
+            "code": res.status, //解析接口状态
+            "msg": 'res.message', //解析提示文本
+            "count": res._meta.total_items, //解析数据长度
+            "data": res.items //解析数据列表
+          };
+        }
+        ,cols: [[ //表头
+        //  {field: 'id', title: 'ID',width:80, fixed: 'left'}
+ //  {field: 'id', title: 'ID',width:80, fixed: 'left'}
+        {type:'numbers',title:'序号'}
+    //   ,{field: 'id', title: 'ID',width:40}
+        ,{field: 'area', title: '片区',width:80,sort: true}
+    //  ,{field: 'wbscode', title: '工程编号',width:230}
+        ,{field: 'category', title: '工程性质',width:100,sort: true}
+        ,{field: 'reserve_code', title: '预留号',width:130,sort: true}
+        ,{field: 'name', title: '工程名称',width:420}
+        ,{field: 'remark', title: '备注',width:420}
+     // ,{field: 'year', title: '工程年份',width:120, sort: true}
+ 
+        ,{fixed: 'right', title:'操作',width:380, align:'center', toolbar: '#rowtoolbar'}
+        // ,{fixed: 'right', title:'仓库操作',width:280, align:'center',templet: function(d){
+        //   return '<div>'+
+        //           '<a href="/project/'+d.id+'/edit" class="layui-table-link row-toolbar">材料清单</a>'+
+        //           '<a href="/project/'+d.id+'/inbound" class="layui-table-link row-toolbar">入库单</a>'+
+        //           '<a href="/project/'+d.id+'/outbound" class="layui-table-link row-toolbar">出库单</a>'+
+        //           '</div>'
+        //   }
+
+        ]]
+        ,done:function(res){
+          console.log("done:"+res);
+          laydate.render({
+            elem: '#projectYear'
+            ,type: 'year'
+            });
+        }
+    });
+    
+    
+
+    
+    
+//头工具栏事件
+table.on('toolbar(materialTable)', function(obj){
+    switch(obj.event){
+      case 'reload':
+      var projectName =$('#nameArg').val();
+        var projectCategory = $('#categoryArg').val();
+        var projectArea =$('#areaArg').val();
+        var projectReserveCode = $('#reserve_codeArg').val();
+        // var projectName =$('#dataReload');
+        // var projectYear = $('#projectYear');
+        var index = layer.msg('查询中，请稍候...',{icon:16,time:false,shade:0});
+        setTimeout(function(){
+          table.reload('materialTable',{//执行重载
+              page:{
+                page:1
+              }
+              ,where:{
+                name:projectName,
+                category:projectCategory,
+                area:projectArea,
+                reservecode:projectReserveCode
+              }
+          });
+          layer.close(index);
+        },800);
+       break;
+     case 'other':    
+       break;
+    };
+  });
+  //监听行工具条
+  table.on('tool(materialTable)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+    var data = obj.data; //获得当前行数据
+    var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+    var tr = obj.tr; //获得当前行 tr 的DOM对象
+    if(layEvent === 'inbound'){ //查看
+      window.location.href="/project/"+data.id+"/inbound";  
+    } else if(layEvent === 'outbound'){  
+      window.location.href="/project/"+data.id+"/outbound";  
+      
+    } else if(layEvent === 'warehousing'){      
+      window.location.href="/project/"+data.id+"/warehousing";  
+    } 
+    else if(layEvent === 'return'){
+      window.location.href="/project/"+data.id+"/return";   
+    }
+    else if(layEvent === 'inventory'){
+      window.location.href="/project/"+data.id+"/inventory"
+      // layer.msg('建设中...', {
+      //     icon: 1,
+      //     time: 2000 //2秒关闭（如果不配置，默认是3秒）
+      //   }, function(){
+      //     //do something
+      //   });
+      // window.location.href="/project/bom?id="+data.id;  
+    }
+  });
+   
+
+
+  });
+</script>
+
+{% endblock %}
+ 
+ 
+    
+ 
+
