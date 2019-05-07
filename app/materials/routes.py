@@ -113,4 +113,5 @@ from app import db
 @bp.route('/index', methods=['GET','POST'])
 @login_required
 def index():
-   return render_template('materials/index.html', title='材料管理') 
+   role = current_user.can_material()
+   return render_template('materials/index.html', title='材料管理',role=role) 

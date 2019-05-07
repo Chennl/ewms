@@ -1,5 +1,10 @@
 # user-specific files
 *.pyc
+*.log
+
+venv/
+logs/
+uploads/
 migrations/
 .vscode/
-venv/
+

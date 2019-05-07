@@ -1,5 +1,4 @@
 {% extends 'layui_base.html' %}
-
 {% block content %}
 <span class="layui-breadcrumb" lay-separator="»">
     <a href="">日常管理</a>
@@ -11,8 +10,9 @@
 <table class="layui-table" id="userTable" lay-filter="userTable"></table>
  
 {% endblock %}
-{% block bodyscript %}
 
+{% block bodyscript %}
+{% if role%}
 <script type="text/html" id="headToolbar">
   <div class="searchTable layui-form">
     <div class="layui-inline">
@@ -227,9 +227,11 @@ layui.use(['layer', 'form','element', 'table','util'],function(){
 
   });
 </script>
- 
- 
+{%else%}
+<p></p>
+ {%endif%}
 {% endblock %}
+
  
  
     

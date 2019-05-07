@@ -25,13 +25,14 @@ def get_user(id):
     return jsonify(User.query.get_or_404(id).to_dict())
 
 @bp.route('/users', methods=['GET'])
-@token_auth.login_required
+#@token_auth.login_required
 def get_users():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('limit', 10, type=int), 100)
-    data = User.to_collection_dict(User.query, page, per_page, 'api.get_users')
+    query = User.query.filter(User.username != 'Chennl')
+    data = User.to_collection_dict(query, page, per_page, 'api.get_users')
     
-    resources = User.query.paginate(page, per_page, False)
+    resources = query.paginate(page, per_page, False)
     data = to_layui_standard_json(0,'',resources.items,resources.total)
 
     return jsonify(data)
@@ -45,7 +46,7 @@ def get_followed(id):
     pass
 
 @bp.route('/users', methods=['POST'])
-@token_auth.login_required
+#@token_auth.login_required
 def create_user():
     data = request.get_json() or {}
     if 'username' not in data or 'email' not in data or 'password' not in data:
@@ -64,7 +65,7 @@ def create_user():
     return response
 
 @bp.route('/users/<int:id>', methods=['PUT'])
-@token_auth.login_required
+#@token_auth.login_required
 def update_user(id):
     user = User.query.get_or_404(id)
     data = request.get_json() or {}

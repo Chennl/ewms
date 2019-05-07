@@ -1,9 +1,9 @@
 import base64,os,json
 from hashlib import md5
-from datetime import time
-from datetime import datetime,timedelta
+from datetime import time,datetime,timedelta
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer,SignatureExpired,BadSignature
 #import jwt
-from flask import url_for
+from flask import url_for,current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin,current_user,AnonymousUserMixin,login_manager
 from datetime import datetime,date
@@ -56,9 +56,10 @@ class User(UserMixin,PaginatedAPIMixin,db.Model):
     about_me = db.Column(db.String(140),default='')
     nickname = db.Column(db.String(64),default='')
     last_seen=db.Column(db.DateTime,default=datetime.now)
-    token = db.Column(db.String(64), index=True, unique=True)
+    token = db.Column(db.String(128))
     token_expiration = db.Column(db.DateTime)
     role_id = db.Column(db.Integer,db.ForeignKey('role.id'),nullable=False,  default=1)
+    permission = db.Column(db.Integer ,default=0)
     #role = relationship('Role', backref='users', foreign_keys=[role_id])
 
     # def __init__(self, **kwargs):
@@ -78,14 +79,35 @@ class User(UserMixin,PaginatedAPIMixin,db.Model):
         now = datetime.now()
         if self.token and self.token_expiration > now + timedelta(seconds=60):
             return self.token
-        self.token = base64.urlsafe_b64encode(os.urandom(24)).decode('utf-8')#.replace('+','2B%')
+        self.token = base64.urlsafe_b64encode(os.urandom(24)).decode('utf-8')
         self.token_expiration = datetime.now() + timedelta(seconds=expires_in)
         db.session.add(self)
         return self.token
 
-    def revoke_token(self):
-        self.token_expirration = datetime.now() - timedelta(seconds=1)
 
+    def revoke_token(self):
+        self.token_expiration = datetime.now() - timedelta(seconds=1)
+
+    #基于令牌的验证请求方案 -- 开始
+    def generate_auth_token(self,expiration = 600):
+        s = Serializer(current_app.config['SECRET_KEY'],expires_in=expiration)
+        self.token = s.dumps({'id':self.id})
+        self.token_expiration = datetime.now() + timedelta(seconds=expiration)
+        return self.token
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+           data = s.loads(token)
+        except SignatureExpired:
+            return None
+        except BadSignature:
+            return None
+        user = User.query.get(data['id'])
+        return user
+
+    #基于令牌的验证请求方案 --结束
     def avatar(self,size):
         digest = md5(current_user.username.lower().encode('utf-8')).hexdigest()
         filename=digest+'.jpg'
@@ -125,6 +147,18 @@ class User(UserMixin,PaginatedAPIMixin,db.Model):
     def is_administrator(self):
         return self.can(Permission.ADMINISTER) 
         
+    def can_project(self):
+        return (self.permission & Permission.PROJECT_MGR) >0
+    def can_warehouse_in(self):
+        return (self.permission & Permission.WAREHOUSE_IN)>0
+    def can_warehouse_out(self):
+        return (self.permission & Permission.WAREHOUSE_OUT)>0
+    def can_warehouse_return(self):
+        return (self.permission & Permission.WAREHOUSE_RETURN)>0
+    def can_user(self):
+        return (self.permission & Permission.USER_MGR)>0
+    def can_material(self):
+        return (self.permission & Permission.MATERIAL_MGR)>0
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -299,6 +333,7 @@ class WarehouseNoteItem(db.Model):
     material_id =  db.Column(db.Integer, db.ForeignKey('material.id'))
     material = db.relationship("Material")
     quantity = db.Column(db.Float,default=0)
+    remark = db.Column(db.String(128))
 
     def from_dict(self,data):
         for field in['material_id','quantity']:
@@ -314,11 +349,13 @@ class Role(db.Model):
     #users = db.relationship('User', backref = 'role', lazy = 'dynamic')
 
 class Permission:
-    PROJECT_MGR =   0b000000000001 #工程员     0b000000000001
+    PROJECT_MGR =   0b000000000001 #工程      0b000000000001
     MATERIAL_MGR =  0b000000000010 #材料员    0b000000000010
-    WAREHOUSE_MGR = 0b000000000100 #仓库员   
-    USER_MGR =      0b000000001000 #普通管理员 
-    ADMINISTER =    0x1000000000000 #超级管理员
+    WAREHOUSE_IN =      0b000000000100 #仓库员   
+    WAREHOUSE_OUT =     0b000000001000 #仓库员   
+    WAREHOUSE_RETURN =  0b000000010000 #仓库员   
+    USER_MGR =          0b000100000000 #用户管理员 
+    ADMINISTER =        0b1000000000000 #超级管理员
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):

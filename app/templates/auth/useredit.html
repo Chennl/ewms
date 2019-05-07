@@ -45,6 +45,23 @@
                 <p><span style="color: red;">[{{ error }}]</span></p>
                 {% endfor %}
               </div>
+              <div class="layui-form-item">
+                <label class="layui-form-label">权限</label>
+                <div class="layui-input-block">
+                  <input type="checkbox" id="p_project_setting" value=1 name="p_project_setting" title="工程管理" lay-skin="primary" 
+                              {%if form.p_project_setting.data  %}checked {%endif%}  class="layui-input">
+                  <input type="checkbox" id="p_warehouse_in" value=1 name="p_warehouse_in" title="入库" lay-skin="primary"   
+                              {%if form.p_warehouse_in.data  %}checked {%endif%}  class="layui-input">
+                  <input type="checkbox" name="p_warehouse_out" value=1  title="出库" lay-skin="primary"  
+                              {%if form.p_warehouse_out.data  %}checked {%endif%}  class="layui-input">
+                  <input type="checkbox" name="p_warehouse_return" value =1 title="退料" lay-skin="primary" 
+                              {%if form.p_warehouse_return.data  %}checked {%endif%}  class="layui-input">
+                  <input type="checkbox" name="p_material_setting" value =1 title="材料设置" lay-skin="primary"  
+                              {%if form.p_material_setting.data  %}checked {%endif%}  class="layui-input">
+                  <input type="checkbox" name="p_user_setting" value=1 title="用户管理" lay-skin="primary" 
+                              {%if form.p_user_setting.data  %}checked {%endif%}  class="layui-input">
+                </div>
+              </div>
 
               <div class="layui-form-item layui-form-text">
                 <label class="layui-form-label">关于我</label>

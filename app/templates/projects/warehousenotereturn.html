@@ -22,7 +22,7 @@
           <div class=" layui-form-item">
             <label class="layui-form-label">退料日期</label>
             <div class="layui-input-block">
-              <input type="text" name="note_date" id="notedate" autocomplete="off" class="layui-input" lay-verify="required">
+              <input type="text" name="note_date" id="notedate" autocomplete="off" {%if not role%} value={{note.note_date}} readonly{% endif%} class="layui-input" lay-verify="required">
             </div>
           </div>
       </div>
@@ -44,20 +44,20 @@
           <div class=" layui-form-item">
                 <label class="layui-form-label">单据编号</label>
                 <div class="layui-input-inline">
-                  <input type="text" name="note_no" value="{{note.note_no}}" autocomplete="off" class="layui-input" lay-verify="required">
+                  <input type="text" name="note_no" value="{{note.note_no}}" {%if not role%} readonly{% endif%} autocomplete="off" class="layui-input" lay-verify="required">
                 </div>
           </div>
       </div>
       <div class=" layui-form-item">
           <label class="layui-form-label">备注</label>
           <div class="layui-input-block">
-            <input type="text" name="remark"   autocomplete="off" class="layui-input" >
+            <input type="text" name="remark"   autocomplete="off" {%if not role%} readonly{% endif%}  class="layui-input" >
           </div>
     </div>
 
       <div class="layui-inline">
           <div class=" layui-form-item">
-          <input type="hidden"  name="project_id" lay-verify="required" value={{project.id}} >
+          <input type="hidden"  name="project_id" lay-verify="required" {%if not role%} readonly{% endif%} value={{project.id}} >
           </div>
       </div>
      
@@ -68,7 +68,9 @@
               <table id="dataTable" lay-filter="dataTable" class="layui-hide"></table>
             </div>
             <div id="action" class="text-center">
-              <button type="button" id="btnSubmit" lay-filter="btnSubmit" lay-submit class="layui-btn" data-type="save"><i class="layui-icon layui-icon-ok-circle"></i>保存</button>				
+              {%if role%}
+              <button type="button" id="btnSubmit" lay-filter="btnSubmit" lay-submit class="layui-btn" data-type="save"><i class="layui-icon layui-icon-ok-circle"></i>保存</button>	
+              {%endif%}			
               <a  name="btnReset" class="layui-btn layui-btn-primary" href="/project/{{project.id}}/return">返回</a>
              
             </div>
@@ -126,10 +128,12 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
     ,layedit = layui.layedit
     ,$ = layui.jquery;
     
+    //{%if role%}
     laydate.render({
       elem:'#notedate',
       value: new Date(Date.parse("{{note.note_date}}")) //必须遵循format参数设定的格式
     });
+    //{%endif%}
     form.val("noteForm", {
         "noteid":"{{note.id}}",
         "warehouse_id": "{{note.warehouse_id}}" // "name": "value"
@@ -164,9 +168,15 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
 					{field: 'material_code', title: '编号',width:150},
 					{field: 'material_name', title: '名称',width:150},
 					{field: 'material_specification', title: '规格型号'},	
-          {field: 'material_quantity', title: '<i class="layui-icon layui-icon-edit"></i>数量', edit: 'text',width:80},
+         //{%if role%}
+         {field: 'material_quantity', title: '<i class="layui-icon layui-icon-edit"></i>数量', edit: 'text',width:80},
           {field: 'material_unit', title: '单位',width:100},
-          {field: 'material_remark', title: '备注',width:200},							
+          {field: 'material_remark', title: '<i class="layui-icon layui-icon-edit"></i>备注', edit: 'text',width:200},
+          //{%else%}
+          {field: 'material_quantity', title: '数量', width:80},
+          {field: 'material_unit', title: '单位',width:100},
+          {field: 'material_remark', title: '备注', width:200},				
+          //{%endif%}
 					// {field: 'tempId', title: '操作', templet: function(d){
 					// 	return '<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" lay-id="'+ d.tempId +'"><i class="layui-icon layui-icon-delete"></i>移除</a>';
 					// }}
@@ -181,7 +191,7 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
         var items = [];
         for(var i=0,row; i < rows.length; i++){
           row = rows[i];
-          var item = {"material_id":row["material_id"],"quantity":row["material_quantity"]};
+          var item = {"material_id":row["material_id"],"quantity":row["material_quantity"],"remark":row["material_remark"]};
           items.push(item);
         }
         var jsonObj={...data.field,"items":items};
@@ -200,7 +210,7 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
                           layer.msg("退料成功", {icon: 6});
                           setTimeout(function(){
                               layer.closeAll();
-                              window.location.href="/project/{{project.id}}/return";
+                             // window.location.href="/project/{{project.id}}/return";
                           }, 1000);
                       }else{
                           layer.msg("退料失败"+msg.msg, {icon: 5});

@@ -26,4 +26,8 @@ def index():
 @admin_required
 def for_admins_only():
     return "For administrators!"
+
+@bp.route('/v/index',methods=['GET'])
+def v_index():
+    return render_template('vue/index.html') 
  

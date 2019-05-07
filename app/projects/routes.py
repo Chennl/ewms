@@ -13,7 +13,8 @@ import tempfile
 @bp.route('/index', methods=['GET'])
 @login_required
 def index():
-  return render_template('projects/index.html', title='工程管理') 
+  role = current_user.can_project()
+  return render_template('projects/index.html', title='工程管理',role=role) 
 
 
 @bp.route('/<int:id>/bom', methods=['GET','POST'])
@@ -25,7 +26,8 @@ def bom(id):
 @bp.route('/<int:id>/edit', methods=['GET'])
 def get_project(id):
   project = Project.query.get(id)
-  return render_template('projects/projectedit.html',  project=project ,httpaction='PUT',title='修改工程信息') 
+  role = current_user.can_project()
+  return render_template('projects/projectedit.html',  project=project ,httpaction='PUT',title='修改工程信息',role=role) 
  
 @bp.route('/new', methods=['GET'])
 def get_new_project():
@@ -42,8 +44,9 @@ def warehouse():
 #入库管理
 @bp.route('/<int:id>/inbound', methods=['GET'])
 def project_inbound(id):
+  role = current_user.can_warehouse_in()
   project = Project.query.get(id)
-  return render_template('projects/inbound.html', project=project,title='入库管理') 
+  return render_template('projects/inbound.html', project=project,title='入库管理',role=role) 
 
 @bp.route('/<int:id>/warehousing', methods=['GET'])
 def warehousing(id):
@@ -70,27 +73,29 @@ def warehousing(id):
 
 @bp.route('/<int:id>/warehousing/edit', methods=['GET'])
 def warehousing_edit(id):
+  role = current_user.can_warehouse_in()
   note = WarehouseNote.query.get_or_404(id)
   project = Project.query.get(note.project_id)
   data = get_warehousenote_full_items(project.id,note.id)
   url = '/api/projects/%s/%s/warehousing'%(project.id,note.id)
-  return render_template('projects/warehousing.html', note=note,project=project,data=data,title='修改入库单',method="PUT",url=url) 
+  return render_template('projects/warehousing.html', note=note,project=project,data=data,title='修改入库单',method="PUT",url=url,role=role) 
 
 
 
 #出库管理
 @bp.route('/<int:id>/outbound', methods=['GET'])
 def project_outbound(id):
+  role = current_user.can_warehouse_out()
   project = Project.query.get(id)
-  return render_template('projects/outbound.html', project=project,title='出库管理') 
+  return render_template('projects/outbound.html', project=project,title='出库管理',role=role) 
 
 def get_warehousenote_full_items(project_id,note_id):
   data=[]
-  sbq = db.session.query(WarehouseNoteItem.material_id,WarehouseNoteItem.quantity).filter(WarehouseNoteItem.note_id==note_id).subquery()
-  qy = db.session.query(ProjectMaterial,sbq.c.quantity) \
+  sbq = db.session.query(WarehouseNoteItem.material_id,WarehouseNoteItem.quantity,WarehouseNoteItem.remark).filter(WarehouseNoteItem.note_id==note_id).subquery()
+  qy = db.session.query(ProjectMaterial,sbq.c.quantity,sbq.c.remark) \
           .filter(ProjectMaterial.project_id==project_id)\
           .outerjoin(sbq, ProjectMaterial.material_id == sbq.c.material_id)
-  items = db.session.query(ProjectMaterial,sbq.c.quantity) \
+  items = db.session.query(ProjectMaterial,sbq.c.quantity,sbq.c.remark) \
           .filter(ProjectMaterial.project_id==project_id)\
           .outerjoin(sbq, ProjectMaterial.material_id == sbq.c.material_id).all() 
   if items:
@@ -103,7 +108,7 @@ def get_warehousenote_full_items(project_id,note_id):
             'material_specification':item.ProjectMaterial.material.specification,
             'material_category':item.ProjectMaterial.material.category,
             'material_unit':item.ProjectMaterial.material.unit,
-            'material_remark':item.ProjectMaterial.remark,
+            'material_remark':item.remark,
             } for item in items] 
   else:
     data=[]
@@ -122,6 +127,7 @@ def warehouseout(id):
 def warehouseout_edit(id):
   note = WarehouseNote.query.get_or_404(id)
   project = Project.query.get(note.project_id)
+  role = current_user.can_warehouse_out()
   # sbq = db.session.query(WarehouseNoteItem.material_id,WarehouseNoteItem.quantity).filter(WarehouseNoteItem.note_id==note.id).subquery()
   # items = db.session.query(ProjectMaterial,sbq.c.quantity) \
   #         .filter(ProjectMaterial.project_id==note.project_id)\
@@ -142,14 +148,15 @@ def warehouseout_edit(id):
   #   data=[]
   data = get_warehousenote_full_items(project.id,note.id)
   url = '/api/projects/%s/%s/warehouseout'%(project.id,note.id)
-  return render_template('projects/warehouseout.html', note=note,project=project,data=data,title='修改出库单',method="PUT",url=url) 
+  return render_template('projects/warehouseout.html', note=note,project=project,data=data,title='修改出库单',method="PUT",url=url,role=role) 
 
 
 #退料管理
 @bp.route('/<int:id>/return', methods=['GET'])
 def project_return(id):
   project = Project.query.get(id)
-  return render_template('projects/return.html', project=project,title='退料管理') 
+  role = current_user.can_warehouse_return()
+  return render_template('projects/return.html', project=project,title='退料管理',role=role) 
 #新增退料单窗口
 @bp.route('/<int:id>/warehousenotereturn', methods=['GET'])
 def add_warehousenote_return(id):
@@ -178,10 +185,11 @@ def add_warehousenote_return(id):
 @bp.route('/<int:id>/warehousenotereturn/edit', methods=['GET'])
 def update_warehousenote_return(id):
   note = WarehouseNote.query.get_or_404(id)
+  role = current_user.can_warehouse_return()
   project = Project.query.get(note.project_id)
   data = get_warehousenote_full_items(project.id,note.id)
   url = '/api/projects/%s/%s/warehousereturn'%(project.id,note.id)
-  return render_template('projects/warehousenotereturn.html', note=note,project=project,data=data,title='修改退料单',method="PUT",url=url)
+  return render_template('projects/warehousenotereturn.html', note=note,project=project,data=data,title='修改退料单',method="PUT",url=url,role=role)
 
 @bp.route('/<int:id>/inventory')
 def get_project_inventory(id):

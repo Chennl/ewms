@@ -53,10 +53,11 @@
               <table id="dataTable" lay-filter="dataTable" class="layui-hide"></table>
             </div>
             <div id="action" class="text-center">
+              {% if role %}
               <button class="layui-btn" id="btnSearch" lay-filter="btnSearch" lay-submit ><i class="layui-icon layui-icon-add-circle"></i>添加材料</button>
-              <button type="button" id="btnSubmit" lay-filter="btnSubmit" lay-submit class="layui-btn" data-type="save"><i class="layui-icon layui-icon-ok-circle"></i>保存</button>				
+              <button type="button" id="btnSubmit" lay-filter="btnSubmit" lay-submit class="layui-btn" data-type="save"><i class="layui-icon layui-icon-ok-circle"></i>保存</button>	
+              {%endif%}			
               <a  name="btnReset" class="layui-btn layui-btn-primary" href="/project/index">返回</a>
-             
             </div>
           </div>
       </div>
@@ -93,8 +94,8 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
     var layTableId = "layTable";
     var tableIns = table.render({
 				elem: '#dataTable',
-        //toolbar:'#toolbarDemo',
-        //defaultToolBar:false,
+       toolbar:'#toolbarDemo',
+        defaultToolBar:true,
 				id: layTableId,
        // size:'sm',
 				url: "/api/projects/{{project.id}}/materials",
@@ -116,9 +117,15 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
 					{field: 'material_code', title: '编号',width:150},
 					{field: 'material_name', title: '名称',width:150},
 					{field: 'material_specification', title: '规格型号'},	
+          //{% if role %}
           {field: 'quantity', title: '<i class="layui-icon layui-icon-edit"></i>数量', edit: 'text',width:80},
           {field: 'unit', title: '单位',width:100},	
-          {field: 'remark', title: '备注',width:220},					
+          {field: 'remark', title: '<i class="layui-icon layui-icon-edit"></i>备注', edit: 'text',width:220},	
+          //{%else%}
+          {field: 'quantity', title: '<i class="layui-icon layui-icon-edit"></i>数量',width:80},
+          {field: 'unit', title: '单位',width:100},	
+          {field: 'remark', title: '<i class="layui-icon layui-icon-edit"></i>备注',width:220},	
+          //{%endif%}			
 					// {field: 'tempId', title: '操作', templet: function(d){
 					// 	return '<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" lay-id="'+ d.tempId +'"><i class="layui-icon layui-icon-delete"></i>移除</a>';
 					// }}
@@ -254,7 +261,7 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
       var items = [];
       for(var i=0,row; i < rows.length; i++){
         row = rows[i];
-        var item = {"material_id":row["material_id"],"quantity":row["quantity"]};
+        var item = {"material_id":row["material_id"],"quantity":row["quantity"],"remark":row["remark"]};
         items.push(item);
       }
       var jsonObj={'project_id':data.field.project_id, "items":items};
@@ -273,7 +280,7 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
                         layer.msg("材料清单修改成功", {icon: 6});
                         setTimeout(function(){
                             layer.closeAll();
-                            window.location.href="/project/index";
+                           // window.location.href="/project/index";
                         }, 1000);
                     }else{
                         layer.msg("材料清单修改失败"+msg.msg, {icon: 5});

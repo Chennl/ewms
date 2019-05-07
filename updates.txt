@@ -2,8 +2,7 @@
 2. 4.2 api folder project.py 修改 可以单独发布
 3. 4.2 工程信息index ,材料index  done
 
-4. 4.21 pip install flask-mail    pip install flask-httpauth    to be upgraded
-     static/jquery_cookie,js
+4. 4.21 pip install flask-mail    pip install flask-httpauth   static/jquery_cookie,js  done
 
 
 按钮颜色

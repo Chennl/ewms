@@ -11,3 +11,70 @@ https://blog.csdn.net/bobey/article/details/84863380
 a.获取Token:   http --auth chennl:654321 post http://localhost:5000/api/tokens
 b.使用Token:   http GET http://localhost:5000/api/users/1   "Authorization:Bearer w5VKo8yhw/PnA7nj+FrLHcjY646PF/BP"
 c.删除Token:   http DELETE http://localhost:5000/api/tokens "Authorization:Bearer w5VKo8yhw/PnA7nj+FrLHcjY646PF/BP"
+
+
+
+
+curl:
+ 
+$ curl -i -X POST -H "Content-Type: application/json" -d '{"username":"miguel","password":"python"}' http://127.0.0.1:5000/api/users
+HTTP/1.0 201 CREATED
+Content-Type: application/json
+Content-Length: 27
+Location: http://127.0.0.1:5000/api/users/1
+Server: Werkzeug/0.9.4 Python/2.7.3
+Date: Thu, 28 Nov 2013 19:56:39 GMT
+
+{
+  "username": "miguel"
+}
+
+
+
+$ curl -u miguel:python -i -X GET http://127.0.0.1:5000/api/resource
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 30
+Server: Werkzeug/0.9.4 Python/2.7.3
+Date: Thu, 28 Nov 2013 20:02:25 GMT
+
+{
+  "data": "Hello, miguel!"
+}
+
+
+$ curl -u miguel:ruby -i -X GET http://127.0.0.1:5000/api/resource
+HTTP/1.0 401 UNAUTHORIZED
+Content-Type: text/html; charset=utf-8
+Content-Length: 19
+WWW-Authenticate: Basic realm="Authentication Required"
+Server: Werkzeug/0.9.4 Python/2.7.3
+Date: Thu, 28 Nov 2013 20:03:18 GMT
+
+Unauthorized Access
+
+
+
+
+$ curl -u miguel:python -i -X GET http://127.0.0.1:5000/api/token
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 139
+Server: Werkzeug/0.9.4 Python/2.7.3
+Date: Thu, 28 Nov 2013 20:04:15 GMT
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsImV4cCI6MTM4NTY2OTY1NSwiaWF0IjoxMzg1NjY5MDU1fQ.eyJpZCI6MX0.XbOEFJkhjHJ5uRINh2JA1BPzXjSohKYDRT472wGOvjc"
+}
+
+
+$ curl -u eyJhbGciOiJIUzI1NiIsImV4cCI6MTM4NTY2OTY1NSwiaWF0IjoxMzg1NjY5MDU1fQ.eyJpZCI6MX0.XbOEFJkhjHJ5uRINh2JA1BPzXjSohKYDRT472wGOvjc:unused -i -X GET http://127.0.0.1:5000/api/resource
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 30
+Server: Werkzeug/0.9.4 Python/2.7.3
+Date: Thu, 28 Nov 2013 20:05:08 GMT
+
+{
+  "data": "Hello, miguel!"
+}

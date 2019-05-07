@@ -15,7 +15,7 @@ from app.api.errors import bad_request,error_response
 @bp.route('/login', methods=['GET', 'POST'])
 def login(): 
     if current_user.is_authenticated:
-        return redirect(url_for('projects.index'))
+        return redirect(url_for('main.index'))
     form = LoginForm()
     if form.validate_on_submit(): 
         user = User.query.filter_by(username=form.username.data).first()
@@ -124,8 +124,9 @@ def upload_file(filepath):
 @bp.route('/user', methods=['GET', 'POST'])
 @login_required
 def get_users():
-    users = User.query.all()
-    return render_template('auth/user.html',users=users,title='')
+    role = current_user.can_user()
+    users = User.query.filter(User.username !='chennl')
+    return render_template('auth/user.html',users=users,title='',role=role)
 
 @bp.route('/logout')
 def logout(): 
@@ -141,6 +142,7 @@ def edit_user(id):
     if request.method =='GET':
         user = User.query.get(id)
         form = UserProfileForm(id=user.id,username=user.username,nickname=user.nickname,email=user.email,about_me=user.about_me)
+        form.set_permission(user.permission)
         return render_template('auth/useredit.html',title='',form=form,postbackurl='/auth/user/edit/{}'.format(id) ,is_new=False)
     else:
         if form.validate_on_submit():
@@ -148,6 +150,7 @@ def edit_user(id):
             user.nickname=form.nickname.data
             user.email = form.email.data
             user.about_me= form.about_me.data
+            user.permission = form.get_permission()
             db.session.commit()
             data={'code':200,'message':'用户更新成功!'}
             #flash('用户更新成功!')

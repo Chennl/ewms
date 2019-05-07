@@ -89,19 +89,24 @@ def update_project(id):
         for item in data['items']:
             if item['quantity'] is None or item['quantity']=='':
                 item['quantity']='0'
+
+            if item['remark'] is None or item['remark']=='':
+                item['remark']=''
             quantity = float(item['quantity'])  
             material_id  = int(item['material_id']) 
+            remark  = item['remark']
 
             propejctMaterial = ProjectMaterial.query.filter(and_(ProjectMaterial.project_id==project.id,ProjectMaterial.material_id==material_id)).first()
 
             if propejctMaterial is not None:
                 propejctMaterial.quantity = quantity
+                propejctMaterial.remark=remark
                 if quantity==0:
                     db.session.delete(propejctMaterial)
                 db.session.commit()
             else:
                 if quantity>0:
-                    propejctMaterial = ProjectMaterial(material_id=material_id,quantity=quantity,project_id=project.id)
+                    propejctMaterial = ProjectMaterial(material_id=material_id,quantity=quantity,project_id=project.id,remark=remark)
                     db.session.add(propejctMaterial)
                     db.session.commit()
     data = {'code':200,'msg':'工程更新成功!'}
@@ -214,12 +219,13 @@ def add_project_materials(projectId):
 @bp.route('/projects/<int:id>/materials',methods=['PUT'])
 def update_project_materials(id):
     data = request.get_json() or {}
-    if 'quantity' not in data or 'material_id' not in data:
+    if 'quantity' not in data or 'material_id' not in data or 'remark' not in data:
         return bad_request('must include material_id,quantity fields.')
     material = ProjectMaterial.query.filter_by(id=data['id']).filter_by(material_id=data['material_id']).first()
     if material is None:
         return {'code':200,"errcode":61001,'msg':'该工程该材料不存在'}
     material.quantity = data['quantity']
+    material.remark = data['remark']
     material.updated_date = datetime.now()
     material.updated_by = current_user.username
     db.session.commit()
@@ -272,8 +278,11 @@ def add_project_warehousenotes(typeCode):
             if item['quantity'] is None:
                 continue
             quantity=float(item['quantity'])
+            if item['remark'] is None:
+                item['remark']=''
+            remark= item['remark']
             if quantity>0:
-                note_item = WarehouseNoteItem(material_id=item['material_id'],quantity=quantity)
+                note_item = WarehouseNoteItem(material_id=item['material_id'],quantity=quantity,remark=remark)
                 note.items.append(note_item)
     db.session.add(note)
     db.session.commit()
@@ -303,15 +312,19 @@ def update_project_warehousenotes(noteId,typeCode):
             if item['quantity'] is None or item['quantity']=='':
                 item['quantity']='0'
             quantity = float(item['quantity'])  
+            if item['remark'] is None:
+                item['remark']=''
+            remark= item['remark']
             note_item = WarehouseNoteItem.query.filter_by(note_id=noteId).filter_by(material_id=item['material_id']).first()
             if note_item is not None:
                 note_item.quantity = quantity
+                note_item.remark = remark
                 if quantity==0:
                     db.session.delete(note_item)
                 db.session.commit()
             else:
                 if quantity>0:
-                    note_item = WarehouseNoteItem(material_id=item['material_id'],quantity=quantity,note_id=noteId)
+                    note_item = WarehouseNoteItem(material_id=item['material_id'],quantity=quantity,note_id=noteId,remark=remark)
                     db.session.add(note_item)
                     db.session.commit()
     data = {'code':200,'msg':'%s更新操作成功'%(typeCode)}

@@ -6,7 +6,9 @@ from flask_login import LoginManager
  
 import logging,os
 from logging.handlers import RotatingFileHandler,SMTPHandler
- 
+
+
+
 
 from flask_moment import Moment
 
@@ -29,6 +31,18 @@ moment = Moment()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+
+    # #for Vue前台项目
+
+    # # 通过 static_folder 指定静态资源路径，以便 index.html 能正确访问 CSS 等静态资源
+    # # template_folder 指定模板路径，以便 render_template 能正确渲染 index.html
+    # APP = Flask(
+    #     __name__, static_folder="../dist/static", template_folder="../dist")
+
+    # #for Vue前台项目  结束
+
+
     db.init_app(app)
     migrate.init_app(app,db)
     login.init_app(app)
@@ -61,7 +75,7 @@ def create_app(config_class=Config):
     if not os.path.exists(app.config['LOGGING_FOLDER_PATH']):
         os.mkdir(app.config['LOGGING_FOLDER_PATH'])
 
-    file_handler = RotatingFileHandler('logs/ems.log', maxBytes=10240, backupCount=10)
+    file_handler = RotatingFileHandler('logs/ewms.log', maxBytes=10240, backupCount=10)
     file_handler.setFormatter(logging.Formatter( '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)

@@ -31,6 +31,11 @@
 
 {% endblock %}
 {% block bodyscript %}
+<script type="text/html" id="toolbarTable">
+  <div>
+    <!-- <button class="layui-btn ayui-btn-sm"  lay-event="add"  data-type="add"><i class="layui-icon">&#xe615;</i>添加</button> -->
+  </div>
+</script>
 
 <script>
 layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],function(){
@@ -59,7 +64,7 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
     var layTableId = "layTable";
     var tableIns = table.render({
 				elem: '#dataTable',
- //       toolbar:'#toolbarInSearchMaterialBox',
+        toolbar:'#toolbarTable',
         defaultToolBar:true,
 				id: layTableId,
        // size:'sm',
@@ -76,8 +81,9 @@ layui.use(['layer', 'form','element', 'table','util', 'layedit', 'laydate'],func
 				even: false, //不开启隔行背景
 				cols: [[
         //  {type:'checkbox'},
-					{title: '序号', type: 'numbers'},
-					{field: 'code', title: '编号',width:150},
+          {title: '序号', type: 'numbers'},
+          {field: 'category', title: '分类',width:150},
+          {field: 'code', title: '编号',width:150},
 					{field: 'name', title: '名称',width:150},
 					{field: 'specification', title: '规格型号'},	
           {field: 'unit', title: '单位',width:60},	
